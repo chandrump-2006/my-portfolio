@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Terralyze — Carbon Footprint Tracker & Eco-Awareness Platform</title>
+  <title>EduGenie AI — Futuristic AI-Powered Study Assistant</title>
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,7 +13,7 @@
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
+<body class="dark-theme">
   <!-- Animated Background Canvas/Gradients -->
   <div class="bg-glow bg-glow-1"></div>
   <div class="bg-glow bg-glow-2"></div>
@@ -28,9 +28,9 @@
       <div class="sidebar-header">
         <div class="logo">
           <div class="logo-icon">
-            <i data-lucide="leaf"></i>
+            <i data-lucide="sparkles"></i>
           </div>
-          <span class="logo-text">Terralyze <span class="gradient-text">Eco</span></span>
+          <span class="logo-text">EduGenie <span class="gradient-text">AI</span></span>
         </div>
       </div>
       
@@ -39,32 +39,28 @@
           <i data-lucide="layout-dashboard"></i>
           <span>Dashboard</span>
         </button>
-        <button class="nav-item" data-tab="calculator">
-          <i data-lucide="calculator"></i>
-          <span>Carbon Calculator</span>
+        <button class="nav-item" data-tab="summarizer">
+          <i data-lucide="file-text"></i>
+          <span>Notes Summarizer</span>
         </button>
-        <button class="nav-item" data-tab="challenges">
-          <i data-lucide="trophy"></i>
-          <span>Challenges & Tips</span>
-        </button>
-        <button class="nav-item" data-tab="simulator">
-          <i data-lucide="tree-pine"></i>
-          <span>Offset Simulator</span>
-        </button>
-        <button class="nav-item" data-tab="trivia">
+        <button class="nav-item" data-tab="quiz">
           <i data-lucide="help-circle"></i>
-          <span>Eco-Trivia Game</span>
+          <span>Quiz Generator</span>
+        </button>
+        <button class="nav-item" data-tab="flashcards">
+          <i data-lucide="layers"></i>
+          <span>Flashcards</span>
         </button>
       </nav>
 
       <div class="sidebar-footer">
         <div class="user-status-card">
           <div class="user-avatar">
-            <span>TE</span>
+            <span>EG</span>
             <span class="online-indicator"></span>
           </div>
           <div class="user-info">
-            <p class="user-name">Green Pioneer</p>
+            <p class="user-name">Scholar Mode</p>
             <div class="streak-mini">
               <i data-lucide="flame" class="streak-icon"></i>
               <span id="mini-streak-count">1</span> Day Streak
@@ -87,21 +83,17 @@
         <i data-lucide="layout-dashboard"></i>
         <span>Dashboard</span>
       </button>
-      <button class="mobile-nav-item" data-tab="calculator">
-        <i data-lucide="calculator"></i>
-        <span>Calc</span>
+      <button class="mobile-nav-item" data-tab="summarizer">
+        <i data-lucide="file-text"></i>
+        <span>Summarize</span>
       </button>
-      <button class="mobile-nav-item" data-tab="challenges">
-        <i data-lucide="trophy"></i>
-        <span>Goals</span>
-      </button>
-      <button class="mobile-nav-item" data-tab="simulator">
-        <i data-lucide="tree-pine"></i>
-        <span>Forest</span>
-      </button>
-      <button class="mobile-nav-item" data-tab="trivia">
+      <button class="mobile-nav-item" data-tab="quiz">
         <i data-lucide="help-circle"></i>
-        <span>Trivia</span>
+        <span>Quiz</span>
+      </button>
+      <button class="mobile-nav-item" data-tab="flashcards">
+        <i data-lucide="layers"></i>
+        <span>Cards</span>
       </button>
     </nav>
 
@@ -111,13 +103,13 @@
       <!-- Top Action Bar -->
       <header class="top-bar">
         <div class="welcome-heading">
-          <h1 id="page-title">Ecological Dashboard</h1>
-          <p id="page-subtitle" class="subtext">Welcome back, Pioneer. Let's analyze your environmental metrics today.</p>
+          <h1 id="page-title">Dashboard Overview</h1>
+          <p id="page-subtitle" class="subtext">Welcome back. Ready to accelerate your learning?</p>
         </div>
         
         <div class="header-actions">
           <!-- Daily Goal Indicator -->
-          <div class="goal-widget" title="Daily carbon budget utilization progress">
+          <div class="goal-widget" title="Daily study time tracking progress">
             <div class="goal-progress-circle">
               <svg width="40" height="40" viewBox="0 0 40 40">
                 <circle cx="20" cy="20" r="16" class="circle-bg"></circle>
@@ -126,13 +118,13 @@
               <span class="goal-percentage" id="header-goal-pct">0%</span>
             </div>
             <div class="goal-text">
-              <p class="goal-label">Carbon Budget</p>
-              <p class="goal-value" id="header-goal-text">0.0 / 15.0 kg</p>
+              <p class="goal-label">Daily Focus</p>
+              <p class="goal-value" id="header-goal-text">0m / 30m</p>
             </div>
           </div>
 
           <!-- Streak Counter -->
-          <div class="stat-badge streak-badge" id="streak-badge-btn" title="Consecutive eco-friendly tracking days">
+          <div class="stat-badge streak-badge" id="streak-badge-btn">
             <i data-lucide="flame"></i>
             <span class="badge-number" id="streak-count-value">1</span>
             <span class="badge-label">Days Streak</span>
@@ -148,24 +140,24 @@
           <!-- Hero Banner Glassmorphic -->
           <div class="dashboard-hero">
             <div class="hero-left">
-              <h2>Shrink Your Footprint with <span class="gradient-text">Terralyze</span></h2>
-              <p>Calculate your daily transportation, diet, and electricity impact. Unlock actionable carbon reductions and plant visual virtual forests.</p>
+              <h2>Master Any Subject with <span class="gradient-text">EduGenie AI</span></h2>
+              <p>Upload lecture notes, synthesize test prep material, and train using active recall and interactive mock-AI simulations.</p>
               <div class="hero-actions">
-                <button class="btn btn-primary" onclick="switchTab('calculator')">
-                  <i data-lucide="plus"></i> Log Activity
+                <button class="btn btn-primary" onclick="switchTab('summarizer')">
+                  <i data-lucide="plus"></i> Summarize Notes
                 </button>
-                <button class="btn btn-secondary" onclick="switchTab('challenges')">
-                  <i data-lucide="trophy"></i> Explore Challenges
+                <button class="btn btn-secondary" onclick="switchTab('quiz')">
+                  <i data-lucide="help-circle"></i> Practice Quiz
                 </button>
               </div>
             </div>
             <div class="hero-right">
-              <div class="radar-widget-container">
+              <div class="brain-radar-container">
                 <div class="radar-circle circle-l1"></div>
                 <div class="radar-circle circle-l2"></div>
                 <div class="radar-circle circle-l3"></div>
-                <div class="radar-core">
-                  <i data-lucide="globe"></i>
+                <div class="brain-core">
+                  <i data-lucide="brain-circuit"></i>
                 </div>
               </div>
             </div>
@@ -174,45 +166,45 @@
           <!-- Metric Cards Grid -->
           <div class="metrics-grid">
             <div class="metric-card">
-              <div class="metric-icon val-green">
-                <i data-lucide="activity"></i>
+              <div class="metric-icon val-blue">
+                <i data-lucide="file-edit"></i>
               </div>
               <div class="metric-data">
-                <h3 id="stat-today-co2">0.0 kg</h3>
-                <p>Today's Footprint</p>
+                <h3 id="stat-notes-summarized">0</h3>
+                <p>Summarized Notes</p>
               </div>
               <div class="metric-spark-glow"></div>
             </div>
             
             <div class="metric-card">
-              <div class="metric-icon val-blue">
-                <i data-lucide="calendar"></i>
+              <div class="metric-icon val-purple">
+                <i data-lucide="award"></i>
               </div>
               <div class="metric-data">
-                <h3 id="stat-weekly-co2">0.0 kg</h3>
-                <p>Weekly Footprint</p>
+                <h3 id="stat-quizzes-taken">0</h3>
+                <p>Quizzes Completed</p>
               </div>
               <div class="metric-spark-glow"></div>
             </div>
 
             <div class="metric-card">
-              <div class="metric-icon val-orange">
-                <i data-lucide="trending-down"></i>
+              <div class="metric-icon val-pink">
+                <i data-lucide="panels-top-left"></i>
               </div>
               <div class="metric-data">
-                <h3 id="stat-weekly-avg">0.0 kg</h3>
-                <p>Daily Average</p>
+                <h3 id="stat-cards-mastered">0</h3>
+                <p>Flashcards Mastered</p>
               </div>
               <div class="metric-spark-glow"></div>
             </div>
 
             <div class="metric-card">
-              <div class="metric-icon val-yellow">
-                <i data-lucide="heart"></i>
+              <div class="metric-icon val-green">
+                <i data-lucide="timer"></i>
               </div>
               <div class="metric-data">
-                <h3 id="stat-total-offsets">0.0 kg</h3>
-                <p>Carbon Offsets</p>
+                <h3 id="stat-study-time">0m</h3>
+                <p>Study Session Time</p>
               </div>
               <div class="metric-spark-glow"></div>
             </div>
@@ -223,8 +215,8 @@
             <!-- Focus Goal Panel -->
             <div class="glass-panel focus-goal-panel">
               <div class="panel-header">
-                <h3><i data-lucide="target" class="panel-icon icon-green"></i> Carbon Budget Limits</h3>
-                <button class="btn-icon-alt" id="edit-goal-btn" title="Configure Target Budget">
+                <h3><i data-lucide="target" class="panel-icon icon-cyan"></i> Daily Focus Goal</h3>
+                <button class="btn-icon" id="edit-goal-btn" title="Edit Daily Goal">
                   <i data-lucide="edit"></i>
                 </button>
               </div>
@@ -236,15 +228,21 @@
                   </svg>
                   <div class="large-goal-text">
                     <span class="large-pct" id="dashboard-goal-pct">0%</span>
-                    <span class="large-val" id="dashboard-goal-val">0.0 / 15.0 kg</span>
-                    <span class="large-sublabel" id="dashboard-goal-sublabel">Emitted</span>
+                    <span class="large-val" id="dashboard-goal-val">0 / 30 mins</span>
                   </div>
                 </div>
                 
-                <div class="chart-container">
-                  <h4 style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; margin-bottom: 0.5rem; text-align: center;">Weekly Emissions Trend (kg CO2e)</h4>
-                  <div class="chart-tooltip" id="chart-tooltip">12.5 kg</div>
-                  <svg class="chart-svg" id="weekly-emissions-chart"></svg>
+                <div class="session-timer-controls">
+                  <button class="btn btn-sm btn-primary" id="start-session-btn">
+                    <i data-lucide="play"></i> Start Session
+                  </button>
+                  <button class="btn btn-sm btn-secondary hidden" id="pause-session-btn">
+                    <i data-lucide="pause"></i> Pause
+                  </button>
+                  <button class="btn btn-sm btn-danger hidden" id="stop-session-btn">
+                    <i data-lucide="square"></i> Complete
+                  </button>
+                  <span id="active-timer-display" class="timer-display hidden">00:00</span>
                 </div>
               </div>
             </div>
@@ -252,17 +250,15 @@
             <!-- Recent Activity / Logs -->
             <div class="glass-panel activity-panel">
               <div class="panel-header">
-                <h3><i data-lucide="history" class="panel-icon icon-cyan"></i> Activity Emissions Log</h3>
-                <button class="btn-icon-alt" id="clear-history-btn" title="Reset All Logs">
-                  <i data-lucide="trash-2"></i>
-                </button>
+                <h3><i data-lucide="history" class="panel-icon icon-purple"></i> Academic Activity Log</h3>
+                <button class="btn-text-link" id="clear-history-btn">Clear Log</button>
               </div>
               <div class="panel-body">
                 <ul class="activity-list" id="activity-log-list">
                   <!-- Javascript dynamic load -->
                   <li class="empty-activity">
                     <i data-lucide="calendar"></i>
-                    <p>No activity logged today. Add items in the Calculator to track your carbon footprint!</p>
+                    <p>No study activity logged today. Complete a task to begin tracking!</p>
                   </li>
                 </ul>
               </div>
@@ -270,415 +266,442 @@
           </div>
         </section>
 
-        <!-- SECTION 2: CARBON CALCULATOR -->
-        <section id="tab-calculator" class="tab-section">
+        <!-- SECTION 2: NOTES SUMMARIZER -->
+        <section id="tab-summarizer" class="tab-section">
           <div class="grid-2-cols">
             <!-- Input Settings Panel -->
             <div class="glass-panel">
               <div class="panel-header">
-                <h3><i data-lucide="edit-3" class="panel-icon icon-green"></i> Activity Input Studio</h3>
+                <h3><i data-lucide="terminal" class="panel-icon icon-violet"></i> Notes Input Studio</h3>
               </div>
               <div class="panel-body flex-col-container">
-                <!-- Inner Tabs -->
-                <div class="calculator-tabs">
-                  <button class="calc-tab-btn active" data-type="transport">
-                    <i data-lucide="car"></i> Transport
-                  </button>
-                  <button class="calc-tab-btn" data-type="food">
-                    <i data-lucide="apple"></i> Food
-                  </button>
-                  <button class="calc-tab-btn" data-type="energy">
-                    <i data-lucide="zap"></i> Energy
-                  </button>
-                  <button class="calc-tab-btn" data-type="waste">
-                    <i data-lucide="trash"></i> Waste
-                  </button>
+                <div class="preset-triggers">
+                  <span class="label-heading">Demo Presets:</span>
+                  <button class="badge-btn" onclick="loadPresetText('photosynthesis')">Photosynthesis</button>
+                  <button class="badge-btn" onclick="loadPresetText('neuroscience')">Synaptic Plasticity</button>
+                  <button class="badge-btn" onclick="loadPresetText('artificial_intelligence')">Machine Learning</button>
+                </div>
+                
+                <div class="textarea-wrapper">
+                  <textarea id="summarizer-input" placeholder="Paste your study materials, lecture summaries, textbook passages, or select a Demo Preset to test..." maxlength="10000"></textarea>
+                  <div class="textarea-meta">
+                    <span id="char-counter">0 / 10,000 characters</span>
+                    <button class="btn-text-link" onclick="clearSummarizerInput()"><i data-lucide="trash-2"></i> Clear Text</button>
+                  </div>
                 </div>
 
-                <!-- Form 1: Transport -->
-                <div class="calc-form-view active" id="form-transport">
-                  <div class="form-group">
-                    <label>Mode of Transportation</label>
-                    <div class="segmented-control" id="transport-mode-selector">
-                      <button class="segment-btn active" data-mode="car">Car</button>
-                      <button class="segment-btn" data-mode="transit">Public Transit</button>
-                      <button class="segment-btn" data-mode="flight">Flight</button>
-                      <button class="segment-btn" data-mode="bike">Active (Bike/Walk)</button>
-                    </div>
-                  </div>
-
-                  <div class="form-group" id="car-fuel-group">
-                    <label for="car-fuel-type">Car Fuel Type</label>
-                    <select id="car-fuel-type" class="form-select">
-                      <option value="petrol">Petrol / Gasoline</option>
-                      <option value="diesel">Diesel</option>
-                      <option value="electric">Electric Vehicle (EV)</option>
+                <div class="options-row">
+                  <div class="option-group">
+                    <label for="summarizer-tone">Output Summary Tone</label>
+                    <select id="summarizer-tone" class="form-select">
+                      <option value="concise" selected>Concise & Bulleted (Quick Summary)</option>
+                      <option value="academic">Academic & Technical (Deep Study)</option>
+                      <option value="simple">Explain Like I'm 5 (Plain Language)</option>
+                      <option value="creative">Metaphors & Mnemonics (Memory Aids)</option>
                     </select>
                   </div>
 
-                  <div class="form-group">
-                    <label id="distance-label">Distance Traveled (km)</label>
-                    <div class="range-slider-container">
-                      <input type="range" id="transport-distance" class="range-slider" min="0" max="200" value="25">
-                      <span class="slider-val-badge" id="transport-distance-val">25 km</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Form 2: Food -->
-                <div class="calc-form-view" id="form-food">
-                  <div class="form-group">
-                    <label for="food-diet-type">Dietary Profile</label>
-                    <select id="food-diet-type" class="form-select">
-                      <option value="meat-heavy">Meat-Heavy (Frequent red meat)</option>
-                      <option value="average" selected>Average Meat Eater (Mixed)</option>
-                      <option value="vegetarian">Vegetarian (No meat, dairy/eggs)</option>
-                      <option value="vegan">Vegan (Strict plant-based)</option>
+                  <div class="option-group">
+                    <label for="summarizer-length">Depth Level</label>
+                    <select id="summarizer-length" class="form-select">
+                      <option value="short">Key Takeaways Only (Short)</option>
+                      <option value="medium" selected>Structured Outline (Medium)</option>
+                      <option value="long">Detailed Study Guide (Long)</option>
                     </select>
                   </div>
-
-                  <div class="form-group">
-                    <label>Number of Meals Prepared (Today)</label>
-                    <div class="range-slider-container">
-                      <input type="range" id="food-meals" class="range-slider" min="1" max="5" value="3">
-                      <span class="slider-val-badge" id="food-meals-val">3 meals</span>
-                    </div>
-                  </div>
                 </div>
 
-                <!-- Form 3: Energy -->
-                <div class="calc-form-view" id="form-energy">
-                  <div class="form-group">
-                    <label>Grid Electricity Consumption (Today's estimate)</label>
-                    <div class="range-slider-container">
-                      <input type="range" id="energy-electricity" class="range-slider" min="0" max="50" value="10" step="0.5">
-                      <span class="slider-val-badge" id="energy-electricity-val">10 kWh</span>
-                    </div>
-                  </div>
-
-                  <div class="form-group">
-                    <label>Natural Gas / Home Heating</label>
-                    <div class="range-slider-container">
-                      <input type="range" id="energy-gas" class="range-slider" min="0" max="30" value="5" step="0.5">
-                      <span class="slider-val-badge" id="energy-gas-val">5 kWh</span>
-                    </div>
-                  </div>
-
-                  <div class="form-group">
-                    <label>Renewable/Clean Energy Proportion</label>
-                    <div class="range-slider-container">
-                      <input type="range" id="energy-renewable" class="range-slider" min="0" max="100" value="0" step="5">
-                      <span class="slider-val-badge" id="energy-renewable-val">0%</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Form 4: Waste -->
-                <div class="calc-form-view" id="form-waste">
-                  <div class="form-group">
-                    <label>General Household Waste Disposed (Today)</label>
-                    <div class="range-slider-container">
-                      <input type="range" id="waste-amount" class="range-slider" min="0" max="20" value="2" step="0.2">
-                      <span class="slider-val-badge" id="waste-amount-val">2.0 kg</span>
-                    </div>
-                  </div>
-
-                  <div class="form-group">
-                    <label>Recycling / Composting Ratio</label>
-                    <div class="range-slider-container">
-                      <input type="range" id="waste-recycle" class="range-slider" min="0" max="100" value="30" step="5">
-                      <span class="slider-val-badge" id="waste-recycle-val">30%</span>
-                    </div>
-                  </div>
-                </div>
-
-                <button class="btn btn-primary btn-full-width mt-2" id="log-activity-btn">
-                  <i data-lucide="check"></i> Log activity to Dashboard
+                <button class="btn btn-primary btn-full-width" id="summarize-btn">
+                  <i data-lucide="sparkles"></i> Generate AI Summary
                 </button>
               </div>
             </div>
 
             <!-- Output Panel -->
             <div class="glass-panel result-panel-wrapper">
-              <div class="panel-header">
-                <h3><i data-lucide="eye" class="panel-icon icon-cyan"></i> Impact Analysis</h3>
-              </div>
-              <div class="output-results">
-                <div class="output-hero-stat">
-                  <div class="val" id="calc-estimate-co2">0.0 kg</div>
-                  <div class="label">CO2e Emissions Estimate</div>
-                  <div class="metric-spark-glow"></div>
-                </div>
-
-                <div class="output-breakdown">
-                  <h4>Category Comparison</h4>
-                  
-                  <div>
-                    <div class="factor-bar-row">
-                      <span>Transport</span>
-                      <strong id="breakdown-val-transport">0.0 kg</strong>
-                    </div>
-                    <div class="factor-bar-outer">
-                      <div class="factor-bar-fill fill-transport" id="breakdown-bar-transport" style="width: 0%"></div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div class="factor-bar-row">
-                      <span>Food</span>
-                      <strong id="breakdown-val-food">0.0 kg</strong>
-                    </div>
-                    <div class="factor-bar-outer">
-                      <div class="factor-bar-fill fill-food" id="breakdown-bar-food" style="width: 0%"></div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div class="factor-bar-row">
-                      <span>Energy</span>
-                      <strong id="breakdown-val-energy">0.0 kg</strong>
-                    </div>
-                    <div class="factor-bar-outer">
-                      <div class="factor-bar-fill fill-energy" id="breakdown-bar-energy" style="width: 0%"></div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div class="factor-bar-row">
-                      <span>Waste</span>
-                      <strong id="breakdown-val-waste">0.0 kg</strong>
-                    </div>
-                    <div class="factor-bar-outer">
-                      <div class="factor-bar-fill fill-waste" id="breakdown-bar-waste" style="width: 0%"></div>
-                    </div>
-                  </div>
+              
+              <!-- Loader State -->
+              <div class="summarizer-loader flex-center-col hidden" id="summarizer-loader">
+                <div class="cyber-spinner"></div>
+                <h4 id="loader-phase">Analyzing text...</h4>
+                <p class="subtext" id="loader-details">Initiating semantic core processors</p>
+                <div class="progress-bar-container">
+                  <div class="progress-fill" id="loader-progress-bar" style="width: 0%"></div>
                 </div>
               </div>
+
+              <!-- Empty State -->
+              <div class="output-empty flex-center-col" id="summarizer-empty">
+                <div class="empty-glow-icon">
+                  <i data-lucide="brain-circuit"></i>
+                </div>
+                <h3>AI Summarizer Engine Idle</h3>
+                <p class="subtext text-center" style="max-width: 320px;">Input study notes on the left and select "Generate" to construct your study guide.</p>
+              </div>
+
+              <!-- Output Content Grid (Hidden initially) -->
+              <div class="output-content hidden" id="summarizer-results">
+                <div class="panel-header no-padding">
+                  <h3><i data-lucide="file-check" class="panel-icon icon-green"></i> Generated Summary</h3>
+                  <div class="action-buttons-group">
+                    <button class="btn-icon-alt" id="copy-summary-btn" title="Copy to Clipboard">
+                      <i data-lucide="copy"></i>
+                    </button>
+                    <button class="btn-icon-alt" id="download-summary-btn" title="Export as TXT">
+                      <i data-lucide="download"></i>
+                    </button>
+                  </div>
+                </div>
+                
+                <div class="summary-body">
+                  <!-- Abstract Box -->
+                  <div class="summary-card outline-glow-blue">
+                    <div class="card-header">
+                      <i data-lucide="align-left" class="icon-blue"></i>
+                      <h4>Abstract / Executive Summary</h4>
+                    </div>
+                    <div class="card-content" id="summary-abstract-output">
+                      <!-- Dynamically Loaded -->
+                    </div>
+                  </div>
+
+                  <!-- Key Takeaways -->
+                  <div class="summary-card outline-glow-purple">
+                    <div class="card-header">
+                      <i data-lucide="list-checks" class="icon-purple"></i>
+                      <h4>Key Takeaways</h4>
+                    </div>
+                    <div class="card-content">
+                      <ul class="bullets-list" id="summary-bullets-output">
+                        <!-- Dynamically Loaded -->
+                      </ul>
+                    </div>
+                  </div>
+
+                  <!-- Key Glossary Concepts -->
+                  <div class="summary-card outline-glow-cyan">
+                    <div class="card-header">
+                      <i data-lucide="bookmark" class="icon-cyan"></i>
+                      <h4>Important Glossary Concepts</h4>
+                    </div>
+                    <div class="card-content">
+                      <div class="glossary-items-grid" id="summary-glossary-output">
+                        <!-- Dynamically Loaded -->
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Convert to study channels -->
+                <div class="study-conversion-bar">
+                  <p class="conversion-text">⚡ Accelerate Prep: Convert this study guide instantly into</p>
+                  <div class="conversion-buttons">
+                    <button class="btn btn-sm btn-primary-gradient" id="convert-to-quiz-btn">
+                      <i data-lucide="help-circle"></i> Interactive Quiz
+                    </button>
+                    <button class="btn btn-sm btn-secondary-gradient" id="convert-to-cards-btn">
+                      <i data-lucide="layers"></i> Flashcard Deck
+                    </button>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
         </section>
 
-        <!-- SECTION 3: CHALLENGES & ACTION INSIGHTS -->
-        <section id="tab-challenges" class="tab-section">
-          <!-- Filter chips -->
-          <div class="tips-filter-bar" id="tips-filter-container">
-            <span class="filter-badge active" data-filter="all">All Recommendations</span>
-            <span class="filter-badge" data-filter="transport">Transport</span>
-            <span class="filter-badge" data-filter="food">Dietary</span>
-            <span class="filter-badge" data-filter="energy">Home Energy</span>
-            <span class="filter-badge" data-filter="waste">Waste Reductions</span>
-          </div>
-
-          <div class="insights-flex-layout">
-            <!-- Left panel: Actionable Tips -->
-            <div class="glass-panel">
+        <!-- SECTION 3: QUIZ GENERATOR -->
+        <section id="tab-quiz" class="tab-section">
+          <div class="quiz-container-layout">
+            
+            <!-- Setup & Config Screen -->
+            <div class="glass-panel max-width-centered" id="quiz-setup-panel">
               <div class="panel-header">
-                <h3><i data-lucide="lightbulb" class="panel-icon icon-yellow"></i> Actionable Carbon Tips</h3>
-              </div>
-              <div class="panel-body">
-                <div class="tips-grid" id="tips-container">
-                  <!-- Dynamically Loaded from JS -->
-                </div>
-              </div>
-            </div>
-
-            <!-- Right panel: Active Challenges -->
-            <div class="glass-panel">
-              <div class="panel-header">
-                <h3><i data-lucide="award" class="panel-icon icon-purple"></i> Ecological Challenges</h3>
-              </div>
-              <div class="panel-body">
-                <div class="challenges-list" id="challenges-container">
-                  <!-- Dynamically Loaded from JS -->
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- SECTION 4: OFFSET SIMULATOR -->
-        <section id="tab-simulator" class="tab-section">
-          <div class="simulator-layout">
-            <!-- Left panel: Simulator inputs -->
-            <div class="glass-panel">
-              <div class="panel-header">
-                <h3><i data-lucide="settings-2" class="panel-icon icon-cyan"></i> Action Sim Studio</h3>
+                <h2><i data-lucide="help-circle" class="panel-icon icon-pink"></i> Interactive Practice Quiz</h2>
               </div>
               <div class="panel-body flex-col-container">
-                <p class="subtext mb-3">Model long-term carbon offset decisions and visualize the ecological output in real-time.</p>
-
-                <!-- Slider 1: Planting trees -->
-                <div class="sim-slider-card">
-                  <div class="sim-slider-header">
-                    <h4><i data-lucide="tree-pine" class="text-green"></i> Plant Virtual Trees</h4>
-                    <span class="slider-val-badge" id="sim-trees-val">0 trees</span>
+                <p class="subtext mb-4 text-center">Practice makes progress. Select a source, choose parameters, and let EduGenie AI compile interactive questions.</p>
+                
+                <!-- Source Selection -->
+                <div class="option-group">
+                  <label>Quiz Material Source</label>
+                  <div class="segmented-control" id="quiz-source-selection">
+                    <button class="segment-btn active" data-source="active-notes" id="source-active-notes-btn">
+                      <i data-lucide="file-check"></i> Active Summary Notes
+                    </button>
+                    <button class="segment-btn" data-source="presets" id="source-preset-btn">
+                      <i data-lucide="library"></i> Topic Preset bank
+                    </button>
                   </div>
-                  <input type="range" id="sim-trees" class="range-slider" min="0" max="60" value="0">
-                  <p class="subtext text-green" style="font-size:0.75rem;">1 mature tree absorbs ~22.0 kg CO2 per year.</p>
+                  <p class="input-info-text text-green mt-1 hidden" id="active-notes-status-text">
+                    <i data-lucide="check" style="width:12px;height:12px;display:inline-block;"></i> Summary notes detected! Ready to generate customized questions.
+                  </p>
+                  <p class="input-info-text text-yellow mt-1" id="active-notes-warning-text">
+                    ⚠️ No summary notes generated yet. Please generate a summary first, or use the Preset Topic Bank below.
+                  </p>
                 </div>
 
-                <!-- Slider 2: Home LED transition -->
-                <div class="sim-slider-card">
-                  <div class="sim-slider-header">
-                    <h4><i data-lucide="lightbulb" class="text-yellow"></i> Upgrade LED Bulbs</h4>
-                    <span class="slider-val-badge" id="sim-bulbs-val">0 bulbs</span>
-                  </div>
-                  <input type="range" id="sim-bulbs" class="range-slider" min="0" max="30" value="0">
-                  <p class="subtext text-yellow" style="font-size:0.75rem;">Upgrading to LED saves ~15.0 kg CO2 per bulb/year.</p>
+                <!-- Topic selector if Presets is active -->
+                <div class="option-group hidden" id="quiz-presets-dropdown-group">
+                  <label for="quiz-preset-topic">Preset Topic</label>
+                  <select id="quiz-preset-topic" class="form-select">
+                    <option value="photosynthesis">Cell Biology & Photosynthesis</option>
+                    <option value="neuroscience">Neurobiology & Synaptic Networks</option>
+                    <option value="artificial_intelligence">Computer Science & AI Foundations</option>
+                  </select>
                 </div>
 
-                <!-- Slider 3: Renewable Solar installation -->
-                <div class="sim-slider-card">
-                  <div class="sim-slider-header">
-                    <h4><i data-lucide="sun" class="text-orange"></i> Solar Power Offset</h4>
-                    <span class="slider-val-badge" id="sim-solar-val">Off</span>
+                <div class="grid-2-cols border-top pt-3">
+                  <div class="option-group">
+                    <label for="quiz-size">Number of Questions</label>
+                    <select id="quiz-size" class="form-select">
+                      <option value="3">3 Questions (Speed Run)</option>
+                      <option value="5" selected>5 Questions (Standard)</option>
+                      <option value="10">10 Questions (Comprehensive)</option>
+                    </select>
                   </div>
-                  <input type="range" id="sim-solar" class="range-slider" min="0" max="1" value="0" step="1">
-                  <p class="subtext text-orange" style="font-size:0.75rem;">Residential solar offsets ~1,200.0 kg CO2 per year.</p>
+
+                  <div class="option-group">
+                    <label for="quiz-difficulty">Difficulty Level</label>
+                    <select id="quiz-difficulty" class="form-select">
+                      <option value="beginner">Beginner (Review Definitions)</option>
+                      <option value="medium" selected>Intermediate (Apply Knowledge)</option>
+                      <option value="master">Expert (Critical Synthesis)</option>
+                    </select>
+                  </div>
                 </div>
+
+                <button class="btn btn-primary btn-full-width mt-4" id="generate-quiz-btn">
+                  <i data-lucide="sparkles"></i> Generate and Start Quiz
+                </button>
               </div>
             </div>
 
-            <!-- Right panel: Virtual Forest display -->
-            <div class="glass-panel forest-visualizer-panel">
-              <div class="panel-header">
-                <h3><i data-lucide="globe" class="panel-icon icon-green"></i> Virtual Forest Reserve</h3>
-                <div class="challenge-reward">
-                  <i data-lucide="trending-down"></i>
-                  <span id="sim-projected-reduction">0 kg CO2/yr saved</span>
+            <!-- Active Quiz Screen -->
+            <div class="glass-panel max-width-centered hidden" id="quiz-arena-panel">
+              <!-- Top bar tracking details -->
+              <div class="arena-header">
+                <div class="quiz-badge">
+                  <i data-lucide="shield-alert" class="icon-pink animate-pulse"></i>
+                  <span>AI Interactive Prep</span>
+                </div>
+                
+                <div class="quiz-stats-group">
+                  <div class="quiz-timer" id="quiz-timer-box">
+                    <i data-lucide="clock"></i>
+                    <span id="quiz-timer-text">00:00</span>
+                  </div>
+                  <div class="question-tracker">
+                    Question <strong id="current-question-num">1</strong> of <span id="total-questions-num">5</span>
+                  </div>
                 </div>
               </div>
-              <div class="virtual-forest-grid" id="virtual-forest-grid">
-                <div class="empty-forest-msg">
-                  <i data-lucide="sprout"></i>
-                  <p>Your reserve is currently barren. Adjust the sliders in the Action Sim Studio to grow trees and generate carbon offsets!</p>
+
+              <!-- Main progress meter bar -->
+              <div class="progress-bar-container mt-2 mb-4">
+                <div class="progress-fill" id="quiz-progress-bar" style="width: 20%"></div>
+              </div>
+
+              <!-- Question Arena -->
+              <div class="quiz-question-box">
+                <h3 class="question-title" id="quiz-question-text">Loading question text...</h3>
+                
+                <div class="quiz-options-list" id="quiz-options-list">
+                  <!-- JS Dynamic Render of options -->
                 </div>
+              </div>
+
+              <!-- Feedback & Action Panel -->
+              <div class="quiz-feedback-panel hidden" id="quiz-feedback-panel">
+                <div class="feedback-status" id="feedback-status-title">
+                  <i data-lucide="check-circle-2" class="text-green"></i>
+                  <span>Correct Answer!</span>
+                </div>
+                <p class="feedback-explanation" id="feedback-explanation-text">
+                  Photosynthesis is correct because light-dependent reactions synthesize ATP and NADPH inside the thylakoid membranes.
+                </p>
+              </div>
+
+              <!-- Footer action navigation -->
+              <div class="arena-footer">
+                <button class="btn btn-secondary" id="quit-quiz-btn">Quit Quiz</button>
+                <button class="btn btn-primary" id="submit-answer-btn" disabled>Submit Answer</button>
+                <button class="btn btn-primary-gradient hidden" id="next-question-btn">Next Question <i data-lucide="chevron-right"></i></button>
               </div>
             </div>
+
+            <!-- Scorecard Results Screen -->
+            <div class="glass-panel max-width-centered hidden" id="quiz-results-panel">
+              <div class="results-header flex-center-col">
+                <div class="circular-score-widget">
+                  <svg width="180" height="180" viewBox="0 0 180 180">
+                    <circle cx="90" cy="90" r="75" class="circle-bg-large"></circle>
+                    <circle cx="90" cy="90" r="75" class="circle-progress-large" id="results-score-circle" stroke-dasharray="471.2" stroke-dashoffset="471.2"></circle>
+                  </svg>
+                  <div class="results-score-text">
+                    <span class="score-pct" id="results-score-pct">0%</span>
+                    <span class="score-fraction" id="results-score-fraction">0 / 0 Correct</span>
+                  </div>
+                </div>
+                
+                <h2 id="results-headline">Quiz Evaluated!</h2>
+                <p class="subtext text-center" id="results-summary-text" style="max-width: 420px;">You answered 3 out of 5 questions correctly. Keep reviewing the topics in flashcards to master the material.</p>
+              </div>
+
+              <!-- Review Summary Section -->
+              <div class="results-review-section border-top pt-4 mt-4">
+                <h3>Detailed Question Breakdown</h3>
+                <div class="review-questions-list" id="results-review-list">
+                  <!-- Dynamically Rendered review cards -->
+                </div>
+              </div>
+
+              <div class="results-footer-actions">
+                <button class="btn btn-secondary" id="results-retry-btn">
+                  <i data-lucide="refresh-cw"></i> Retry Quiz
+                </button>
+                <button class="btn btn-secondary-gradient" id="results-flashcard-link-btn">
+                  <i data-lucide="layers"></i> Study Flashcards
+                </button>
+                <button class="btn btn-primary" id="results-dashboard-btn">
+                  Back to Dashboard
+                </button>
+              </div>
+            </div>
+
           </div>
         </section>
 
-        <!-- SECTION 5: ECO-TRIVIA / QUIZ -->
-        <section id="tab-trivia" class="tab-section">
-          <!-- Setup Panel -->
-          <div class="glass-panel max-width-centered" id="trivia-setup-panel">
-            <div class="panel-header">
-              <h2><i data-lucide="help-circle" class="panel-icon icon-purple"></i> Sustainability Eco-Trivia</h2>
-            </div>
-            <div class="panel-body flex-col-container">
-              <p class="subtext text-center mb-4">Challenge your climate intelligence. Answer environmental queries to raise awareness and test your facts.</p>
-              
-              <div class="form-group">
-                <label for="trivia-topic">Quiz Topic</label>
-                <select id="trivia-topic" class="form-select">
-                  <option value="climate-science" selected>Climate Change & Global Warming</option>
-                  <option value="carbon-footprint">Carbon Footprints & Lifestyle</option>
-                  <option value="renewables">Renewable Energy & Technology</option>
-                  <option value="biodiversity">Conservation & Ecology</option>
-                </select>
+        <!-- SECTION 4: FLASHCARDS -->
+        <section id="tab-flashcards" class="tab-section">
+          <div class="flashcards-layout">
+            
+            <!-- Left panel: Deck control & creation -->
+            <div class="glass-panel flashcard-sidebar">
+              <div class="panel-header">
+                <h3><i data-lucide="book-open" class="panel-icon icon-cyan"></i> Deck Workspace</h3>
               </div>
-
-              <div class="form-group">
-                <label for="trivia-size">Number of Questions</label>
-                <select id="trivia-size" class="form-select">
-                  <option value="3">3 Questions (Speed Run)</option>
-                  <option value="5" selected>5 Questions (Standard)</option>
-                  <option value="10">10 Questions (Ultimate Challenge)</option>
-                </select>
-              </div>
-
-              <button class="btn btn-primary btn-full-width mt-4" id="generate-trivia-btn">
-                <i data-lucide="sparkles"></i> Start Trivia Challenge
-              </button>
-            </div>
-          </div>
-
-          <!-- Active Quiz Arena -->
-          <div class="glass-panel max-width-centered hidden" id="trivia-arena-panel">
-            <div class="arena-header">
-              <div class="quiz-badge">
-                <i data-lucide="globe" class="text-green"></i>
-                <span>Eco-IQ Challenge</span>
-              </div>
-              
-              <div class="quiz-stats-group">
-                <div class="quiz-timer">
-                  <i data-lucide="clock"></i>
-                  <span id="trivia-timer-text">00:00</span>
+              <div class="panel-body flex-col-container">
+                <div class="deck-status-box">
+                  <div class="deck-stat-row">
+                    <span>Active Cards:</span>
+                    <strong id="deck-card-count">0</strong>
+                  </div>
+                  <div class="deck-stat-row">
+                    <span>Mastery Progress:</span>
+                    <strong id="deck-mastery-rate">0%</strong>
+                  </div>
+                  <div class="progress-bar-container mt-2">
+                    <div class="progress-fill fill-green" id="deck-progress-bar" style="width: 0%"></div>
+                  </div>
                 </div>
-                <div>
-                  Question <strong id="trivia-current-num">1</strong> of <span id="trivia-total-num">5</span>
+
+                <div class="deck-generation-box border-top pt-3 mt-3">
+                  <h4>Auto-Build Cards</h4>
+                  <button class="btn btn-sm btn-primary-gradient btn-full-width mt-2" id="cards-generate-notes-btn">
+                    <i data-lucide="sparkles"></i> Extract from Active Summary
+                  </button>
+                  <p class="input-info-text text-yellow mt-1 text-center" id="cards-notes-warning">
+                    ⚠️ No summary detected to extract from.
+                  </p>
                 </div>
-              </div>
-            </div>
 
-            <!-- Progress meter -->
-            <div class="factor-bar-outer mb-4">
-              <div class="factor-bar-fill fill-energy" id="trivia-progress-bar" style="width: 20%"></div>
-            </div>
-
-            <!-- Question box -->
-            <div class="quiz-question-box">
-              <h3 class="question-title" id="trivia-question-text">Loading question text...</h3>
-              
-              <div class="quiz-options-list" id="trivia-options-list">
-                <!-- JS Dynamic option button render -->
-              </div>
-            </div>
-
-            <!-- Feedback pane -->
-            <div class="quiz-feedback-panel hidden" id="trivia-feedback-panel">
-              <div class="feedback-status" id="trivia-feedback-status">
-                <i data-lucide="check-circle-2" class="text-green"></i>
-                <span>Correct!</span>
-              </div>
-              <p class="feedback-explanation" id="trivia-feedback-explanation">
-                Explanation content goes here.
-              </p>
-            </div>
-
-            <!-- Footer navigation -->
-            <div class="arena-footer">
-              <button class="btn btn-secondary" id="quit-trivia-btn">Quit Game</button>
-              <button class="btn btn-primary" id="submit-trivia-btn" disabled>Verify Choice</button>
-              <button class="btn btn-primary" id="next-trivia-btn" style="display: none;">Next Query <i data-lucide="chevron-right"></i></button>
-            </div>
-          </div>
-
-          <!-- Results scorecard -->
-          <div class="glass-panel max-width-centered hidden" id="trivia-results-panel">
-            <div class="results-header flex-center-col">
-              <div class="circular-score-widget">
-                <svg width="180" height="180" viewBox="0 0 180 180">
-                  <circle cx="90" cy="90" r="75" class="circle-bg-large"></circle>
-                  <circle cx="90" cy="90" r="75" class="circle-progress-large" id="trivia-score-circle" stroke-dasharray="471.2" stroke-dashoffset="471.2"></circle>
-                </svg>
-                <div class="results-score-text">
-                  <span class="score-pct" id="trivia-score-pct">0%</span>
-                  <span class="score-fraction" id="trivia-score-fraction">0 / 0 Right</span>
+                <div class="deck-manual-box border-top pt-3 mt-3">
+                  <h4>Create Card Manually</h4>
+                  <div class="form-group mt-2">
+                    <input type="text" id="manual-card-front" class="form-input" placeholder="Front Side: Term / Prompt">
+                  </div>
+                  <div class="form-group mt-2">
+                    <textarea id="manual-card-back" class="form-input" style="height:60px; min-height:60px;" placeholder="Back Side: Definition / Explanation"></textarea>
+                  </div>
+                  <button class="btn btn-sm btn-secondary btn-full-width mt-2" id="manual-card-add-btn">
+                    <i data-lucide="plus"></i> Add to Active Deck
+                  </button>
                 </div>
+
+                <button class="btn btn-xs btn-outline-danger btn-full-width mt-4" id="clear-deck-btn">
+                  <i data-lucide="trash"></i> Reset Active Deck
+                </button>
               </div>
+            </div>
+
+            <!-- Right panel: Flashcard arena -->
+            <div class="flashcard-interactive-arena">
               
-              <h2 id="trivia-results-headline">Evaluation Complete!</h2>
-              <p class="subtext text-center mb-4" id="trivia-results-text" style="max-width: 420px;">You scored 3 out of 5! Good effort. Keep practicing to enhance your climate awareness.</p>
-            </div>
-
-            <!-- Detailed Breakdown -->
-            <div class="results-review-section border-top pt-4">
-              <h3 style="font-size: 1rem; margin-bottom: 1rem;">Detailed Question Breakdown</h3>
-              <div class="review-questions-list" id="trivia-review-list">
-                <!-- JS dynamic render -->
+              <!-- Empty Deck View -->
+              <div class="glass-panel flex-center-col height-100" id="flashcard-empty-view">
+                <div class="empty-glow-icon">
+                  <i data-lucide="layers"></i>
+                </div>
+                <h3>Active Deck is Empty</h3>
+                <p class="subtext text-center" style="max-width: 320px;">Use the left panel to add cards manually, generate them from your notes, or click the button below to load sample cards.</p>
+                <button class="btn btn-secondary mt-3" id="load-sample-cards-btn">
+                  Load Biology Sample Deck
+                </button>
               </div>
+
+              <!-- Interactive Deck Carousel -->
+              <div class="height-100 flex-center-col hidden" id="flashcard-study-view">
+                
+                <!-- Instruction banner -->
+                <p class="slide-instruction mb-2">💡 Click on card to flip front/back. Evaluate your memory after viewing.</p>
+                
+                <!-- The 3D flip card scene -->
+                <div class="flashcard-scene" id="flashcard-scene-container">
+                  <div class="flashcard-3d" id="active-flashcard-element">
+                    
+                    <!-- CARD FRONT -->
+                    <div class="card-face card-face-front flex-center-col">
+                      <span class="card-index-tag" id="card-index-indicator">Card 1 of 5</span>
+                      <div class="card-glow-aurora"></div>
+                      <div class="card-face-content">
+                        <span class="card-category-tag">CONCEPT TERM</span>
+                        <h2 class="card-question-text" id="card-front-text">Thylakoid Membrane</h2>
+                        <span class="flip-hint-badge"><i data-lucide="rotate-3d"></i> Click to Reveal Answer</span>
+                      </div>
+                    </div>
+
+                    <!-- CARD BACK -->
+                    <div class="card-face card-face-back flex-center-col">
+                      <span class="card-index-tag" id="card-index-indicator-back">Card 1 of 5</span>
+                      <div class="card-glow-aurora"></div>
+                      <div class="card-face-content">
+                        <span class="card-category-tag">EXPLANATION</span>
+                        <p class="card-answer-text" id="card-back-text">
+                          A membrane-bound compartment inside chloroplasts and cyanobacteria. It is the site of the light-dependent reactions of photosynthesis.
+                        </p>
+                        <span class="flip-hint-badge"><i data-lucide="rotate-3d"></i> Click to See Term</span>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+                <!-- Learning evaluation buttons (Active recall helpers) -->
+                <div class="learning-evaluation-controls mt-4">
+                  <button class="btn btn-secondary eval-btn-needs-practice" id="btn-needs-practice">
+                    <i data-lucide="x-circle" class="text-red"></i> Still Reviewing
+                  </button>
+                  <button class="btn btn-secondary eval-btn-got-it" id="btn-got-it">
+                    <i data-lucide="check-circle" class="text-green"></i> Got It!
+                  </button>
+                </div>
+
+                <!-- Navigation Controls -->
+                <div class="carousel-navigation-row mt-3">
+                  <button class="btn-icon" id="card-prev-btn" title="Previous Card">
+                    <i data-lucide="arrow-left"></i>
+                  </button>
+                  <span class="carousel-counter-text" id="carousel-indicator-text">1 / 5 Cards</span>
+                  <button class="btn-icon" id="card-next-btn" title="Next Card">
+                    <i data-lucide="arrow-right"></i>
+                  </button>
+                </div>
+
+              </div>
+
             </div>
 
-            <div class="results-footer-actions mt-4">
-              <button class="btn btn-secondary" id="trivia-retry-btn">
-                <i data-lucide="refresh-cw"></i> Retry Topic
-              </button>
-              <button class="btn btn-primary" id="trivia-finish-btn">
-                Return to Dashboard
-              </button>
-            </div>
           </div>
         </section>
 
@@ -687,23 +710,23 @@
 
   </div>
 
-  <!-- BUDGET CONFIG MODAL -->
+  <!-- GOAL EDIT MODAL -->
   <div class="modal-overlay hidden" id="goal-modal">
-    <div class="modal-content glass-panel">
+    <div class="modal-content glass-panel animated-scale-up">
       <div class="modal-header">
-        <h3>Configure Daily Carbon Budget</h3>
+        <h3>Configure Daily Focus Target</h3>
         <button class="btn-icon-alt" id="close-goal-modal-btn"><i data-lucide="x"></i></button>
       </div>
-      <div class="modal-body flex-col-container">
-        <p class="subtext">Set your target threshold limit for daily CO2e emissions (in kg). A lower budget encourages more sustainable choices.</p>
+      <div class="modal-body">
+        <p class="subtext mb-3">Set your target daily study threshold (in minutes) to customize your progress wheels.</p>
         <div class="form-group">
-          <label for="goal-input-field">Daily Target Budget (kg CO2e)</label>
-          <input type="number" id="goal-input-field" class="form-input" min="2" max="100" value="15" step="0.5">
+          <label for="goal-input-field">Study Target (minutes)</label>
+          <input type="number" id="goal-input-field" class="form-input" min="5" max="480" value="30">
         </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" id="cancel-goal-btn">Cancel</button>
-        <button class="btn btn-primary" id="save-goal-btn">Save Changes</button>
+        <button class="btn btn-primary" id="save-goal-btn">Save Settings</button>
       </div>
     </div>
   </div>

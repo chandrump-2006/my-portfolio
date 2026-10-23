@@ -1,5 +1,5 @@
 /**
- * Terralyze Eco — Core Application Logic
+ * EduGenie AI — Core Application Logic
  * Pure Client-side SPA, UI Animations, Web Audio API synthesis, & LocalStorage Sync
  */
 
@@ -7,259 +7,249 @@
 let state = {
   streakCount: 1,
   lastActivityDate: '',
-  dailyTargetBudget: 15.0, // kg CO2e
+  notesCount: 0,
+  quizzesCount: 0,
+  cardsMasteredCount: 0,
+  studyMinutes: 0,
+  dailyTargetMinutes: 30,
   activityLog: [],
-  activeChallenges: [], // items: { id: string, joined: boolean, completed: boolean }
-  simTrees: 0,
-  simBulbs: 0,
-  simSolar: 0,
   audioEnabled: true,
+  flashcardDeck: [],
+  activeSummary: null,
+  activeQuiz: null,
+  currentQuizIndex: 0,
+  quizAnswers: [], // stores user choice indices
+  quizScore: 0,
+  quizTimerInterval: null,
+  quizTimeElapsed: 0,
   
-  // Current session calculator state
-  calcCategory: 'transport', // transport, food, energy, waste
+  // Active study session timer
+  sessionTimerInterval: null,
+  sessionSecondsElapsed: 0,
+  sessionIsRunning: false,
   
-  // Trivia Game state
-  triviaActive: false,
-  triviaQuestions: [],
-  currentTriviaIndex: 0,
-  triviaAnswers: [], // user chosen option index
-  triviaScore: 0,
-  triviaTimerInterval: null,
-  triviaTimeElapsed: 0,
+  // Flashcard carousel active index
+  currentCardIndex: 0
 };
 
-// --- CARBON CONVERSION COEFFICIENTS (kg CO2e per unit) ---
-const COEFFICIENTS = {
-  transport: {
-    car: {
-      petrol: 0.18,  // per km
-      diesel: 0.17,  // per km
-      electric: 0.05 // per km
-    },
-    transit: 0.04,   // per km
-    flight: 0.15,    // per km
-    bike: 0.00       // per km
+// --- PRESET TEXT DATABASE ---
+const TEXT_PRESETS = {
+  photosynthesis: {
+    title: "Cell Biology & Photosynthesis",
+    text: `Photosynthesis is a chemical process that occurs in plants, algae, and some bacteria. It converts light energy into chemical energy, which is stored in bonds of sugar molecules. This crucial biochemical pathway takes place primarily inside organelles called chloroplasts. 
+
+The process is divided into two primary stages: the Light-Dependent Reactions and the Light-Independent Reactions (also known as the Calvin Cycle).
+
+1. Light-Dependent Reactions:
+These reactions take place in the thylakoid membranes of chloroplasts. Chlorophyll molecules absorb sunlight (photons), excitation splits water molecules (photolysis) releasing oxygen (O2) as a byproduct. This electron transport chain generates cellular energy carriers: Adenosine Triphosphate (ATP) and Nicotinamide Adenine Dinucleotide Phosphate (NADPH).
+
+2. Light-Independent Reactions (Calvin Cycle):
+These reactions occur in the stroma, the fluid-filled region of the chloroplast. This process does not require direct light. It uses the ATP and NADPH generated in the light reactions to fix Carbon Dioxide (CO2) from the air into glucose. This cycle utilizes the enzyme Rubisco (ribulose bisphosphate carboxylase) to catalyze the carbon fixation process.
+
+Overall Equation:
+6CO2 + 6H2O + Light Energy → C6H12O6 + 6O2
+
+Photosynthesis is the primary engine of organic energy on Earth, responsible for producing oxygen and forming the base of almost all biological food webs.`,
+    summary: {
+      abstract: "Photosynthesis is the essential biological process by which plants, algae, and some bacteria synthesize glucose and oxygen from carbon dioxide, water, and sunlight. Taking place inside the chloroplasts, it consists of two distinct stages: light-dependent reactions within thylakoid membranes (generating energy carriers ATP and NADPH while releasing oxygen), and the stroma-based Calvin Cycle (which fixes atmospheric carbon dioxide into glucose using Rubisco).",
+      bullets: [
+        "Converts light energy into chemical energy (glucose), releasing oxygen as a key byproduct.",
+        "Takes place inside chloroplasts, split into light-dependent and light-independent phases.",
+        "Light-Dependent Reactions occur in thylakoid membranes, utilizing photolysis (splitting of water) to generate ATP, NADPH, and O2.",
+        "Light-Independent Reactions (Calvin Cycle) occur in the stroma, using Rubisco to fix CO2 into sugars.",
+        "The overall balanced equation is 6CO2 + 6H2O + Light → C6H12O6 + 6O2."
+      ],
+      glossary: [
+        { term: "Chloroplast", definition: "A double-membraned organelle in plant cells that contains chlorophyll and is the site of photosynthesis." },
+        { term: "Thylakoid Membrane", definition: "Internal sheet-like membranes in chloroplasts where the light-dependent reactions of photosynthesis occur." },
+        { term: "Calvin Cycle", definition: "A metabolic pathway in the stroma of chloroplasts that fixes CO2 into sugar using ATP and NADPH." },
+        { term: "Rubisco", definition: "An enzyme that catalyzes the primary step of carbon fixation in the Calvin Cycle." },
+        { term: "Photolysis", definition: "The chemical process of splitting water molecules into hydrogen ions, electrons, and oxygen using light energy." }
+      ],
+      quiz: [
+        {
+          question: "Where do the Light-Dependent Reactions of photosynthesis take place?",
+          options: ["Stroma", "Thylakoid Membranes", "Mitochondrial Matrix", "Cytoplasm"],
+          answerIndex: 1,
+          explanation: "The light-dependent reactions rely on chlorophyll molecules embedded in the thylakoid membranes to capture photons."
+        },
+        {
+          question: "Which enzyme catalyzes the primary step of carbon dioxide fixation in the Calvin Cycle?",
+          options: ["Amylase", "ATP Synthase", "Rubisco", "Helicase"],
+          answerIndex: 2,
+          explanation: "Rubisco (ribulose bisphosphate carboxylase) is the core enzyme responsible for fixing carbon dioxide into organic molecules."
+        },
+        {
+          question: "What is the primary gaseous byproduct released during photolysis?",
+          options: ["Carbon Dioxide (CO2)", "Hydrogen Gas (H2)", "Nitrogen (N2)", "Oxygen (O2)"],
+          answerIndex: 3,
+          explanation: "Photolysis splits water molecules (H2O), producing oxygen (O2) which is released into the atmosphere."
+        },
+        {
+          question: "Which energy carriers are generated in the light reactions to fuel the Calvin Cycle?",
+          options: ["ATP and NADPH", "NADH and FADH2", "ADP and NADP+", "Glucose and Oxygen"],
+          answerIndex: 0,
+          explanation: "ATP and NADPH act as chemical batteries, transporting energy from the thylakoids to the stroma."
+        },
+        {
+          question: "Photosynthesis converts carbon dioxide and water into which chemical compounds?",
+          options: ["Glucose and Carbon Dioxide", "Glucose and Oxygen", "Water and Carbon Dioxide", "Sucrose and Nitrogen"],
+          answerIndex: 1,
+          explanation: "The overall photosynthetic reaction synthesizes glucose (C6H12O6) and releases oxygen (O2) gas."
+        }
+      ],
+      flashcards: [
+        { front: "What is Photosynthesis?", back: "The chemical process that converts carbon dioxide, water, and light energy into glucose and oxygen." },
+        { front: "Where is the Calvin Cycle located?", back: "In the stroma (fluid-filled region) of the chloroplast." },
+        { front: "What does Rubisco stand for and do?", back: "Ribulose bisphosphate carboxylase. It is the enzyme that catalyzes carbon fixation in the Calvin Cycle." },
+        { front: "What is Photolysis?", back: "The splitting of water molecules into hydrogen ions, electrons, and oxygen, powered by light energy." },
+        { front: "Which pigments absorb light in plants?", back: "Chlorophyll molecules, primarily absorbing blue and red light wavelengths." }
+      ]
+    }
   },
-  food: {
-    'meat-heavy': 3.0, // per meal
-    'average': 2.0,    // per meal
-    'vegetarian': 1.2, // per meal
-    'vegan': 0.7       // per meal
+  
+  neuroscience: {
+    title: "Neurobiology & Synaptic Networks",
+    text: `Synaptic plasticity is the biological process by which synaptic connections between neurons change in strength in response to increases or decreases in their activity. It is the cellular mechanism underlying learning and memory formation. 
+
+The two primary forms of synaptic plasticity are Long-Term Potentiation (LTP) and Long-Term Depression (LTD).
+
+1. Long-Term Potentiation (LTP):
+LTP is a persistent strengthening of synapses based on recent patterns of activity. This often involves high-frequency stimulation. In the hippocampus, LTP is heavily dependent on the NMDA (N-methyl-D-aspartate) receptor, a subtype of glutamate receptor. When the postsynaptic neuron is strongly depolarized, magnesium ions (Mg2+) blocking the NMDA channel are expelled. This allows calcium ions (Ca2+) to enter the cell, triggering intracellular cascades that insert additional AMPA receptors into the postsynaptic membrane, strengthening the synaptic response.
+
+2. Long-Term Depression (LTD):
+LTD is the opposite of LTP, characterized by a long-lasting decrease in synaptic strength. It typically results from low-frequency, persistent stimulation. The slow, modest rise in calcium concentration activates protein phosphatases (rather than kinases), which internalize AMPA receptors from the membrane.
+
+According to Hebbian theory, 'neurons that fire together, wire together,' describing how activity-dependent changes in synaptic connectivity form memory traces or engrams in neural circuits.`,
+    summary: {
+      abstract: "Synaptic plasticity is the activity-dependent modification of synaptic strength, serving as the neural foundation for learning and memory. Its key manifestations are Long-Term Potentiation (LTP), which strengthens connections via high-frequency stimulation and calcium-induced insertion of AMPA receptors, and Long-Term Depression (LTD), which weakens connections via low-frequency stimulation and internalization of AMPA receptors. Hippocampal LTP relies on clearing Mg2+ blocks from NMDA receptors to permit calcium entry.",
+      bullets: [
+        "Underlies the physical mechanism of learning, conditioning, and memory storage.",
+        "Long-Term Potentiation (LTP) permanently strengthens synapses following high-frequency activation.",
+        "Long-Term Depression (LTD) weakens synapses following prolonged low-frequency activation.",
+        "NMDA receptors act as coincidence detectors, requiring both glutamate binding and postsynaptic depolarization to expel Mg2+ blocks.",
+        "Calcium entry via NMDA channels acts as the key signal to either add (LTP) or remove (LTD) postsynaptic AMPA receptors."
+      ],
+      glossary: [
+        { term: "Synaptic Plasticity", definition: "The ability of synapses to strengthen or weaken over time in response to increases or decreases in their activity." },
+        { term: "LTP (Long-Term Potentiation)", definition: "A persistent, activity-dependent increase in synaptic efficiency." },
+        { term: "NMDA Receptor", definition: "A glutamate receptor channel that acts as a coincidence detector, blocked by magnesium at resting potential." },
+        { term: "AMPA Receptor", definition: "A ligand-gated ionotropic glutamate receptor that mediates fast synaptic transmission." },
+        { term: "Hebbian Theory", definition: "A neuroscientific theory stating that an increase in synaptic efficacy arises from a presynaptic cell's repeated excitation of a postsynaptic cell." }
+      ],
+      quiz: [
+        {
+          question: "What is the primary cellular mechanism that explains how memories are stored?",
+          options: ["Axonal conduction", "Synaptic plasticity", "Myelination", "Neurogenesis"],
+          answerIndex: 1,
+          explanation: "Synaptic plasticity (changing the connection strength between existing neurons) is widely accepted as the physical basis of learning and memory."
+        },
+        {
+          question: "Which ion blocks the NMDA receptor channel when the postsynaptic cell is at rest?",
+          options: ["Sodium (Na+)", "Calcium (Ca2+)", "Potassium (K+)", "Magnesium (Mg2+)"],
+          answerIndex: 3,
+          explanation: "At resting potential, magnesium ions physically block the NMDA channel. Depolarization is required to expel this magnesium block."
+        },
+        {
+          question: "During LTP, which receptors are inserted into the postsynaptic membrane to increase sensitivity?",
+          options: ["AMPA receptors", "NMDA receptors", "Dopamine receptors", "GABA receptors"],
+          answerIndex: 0,
+          explanation: "Intracellular calcium cascades trigger the transport and insertion of AMPA receptors, increasing sodium entry and depolarizing potential."
+        },
+        {
+          question: "What type of stimulation typically triggers Long-Term Depression (LTD)?",
+          options: ["High-frequency burst stimulation", "Low-frequency, persistent stimulation", "Absolute silence", "Chemical shock"],
+          answerIndex: 1,
+          explanation: "LTD is induced by low-frequency, persistent stimulation which causes a slow, low-amplitude rise in calcium, activating phosphatases."
+        },
+        {
+          question: "Hebbian learning theory is often summarized by which phrase?",
+          options: ["Use it or lose it", "Neurons that fire together, wire together", "Survival of the fittest synapse", "All-or-none connection"],
+          answerIndex: 1,
+          explanation: "Donald Hebb's theory states that synapses are strengthened when pre- and post-synaptic neurons fire synchronously."
+        }
+      ],
+      flashcards: [
+        { front: "Define Synaptic Plasticity", back: "The ability of connection strengths between neurons to change based on active signaling levels." },
+        { front: "What is the role of Calcium in LTP?", back: "It acts as a second messenger that triggers protein kinases to phosphorylate and insert AMPA receptors." },
+        { front: "How is NMDA receptor activated?", back: "It requires both presynaptic glutamate release and postsynaptic depolarization to clear its Mg2+ blocker." },
+        { front: "What is LTD?", back: "Long-Term Depression: a persistent, long-lasting reduction in synaptic strength." },
+        { front: "Where is memory consolidation studied most?", back: "The Hippocampus, a primary temporal lobe brain structure." }
+      ]
+    }
   },
-  energy: {
-    electricity: 0.38, // per kWh
-    gas: 0.20          // per kWh
-  },
-  waste: {
-    general: 0.50      // per kg
-    // recycling saves percentage of general waste footprint
+  
+  artificial_intelligence: {
+    title: "Computer Science & AI Foundations",
+    text: `Machine learning is a subset of artificial intelligence focused on building systems that learn from data to improve performance. The core methodology splits algorithms into Supervised Learning, Unsupervised Learning, and Reinforcement Learning.
+
+1. Supervised Learning:
+Supervised learning algorithms are trained on labeled datasets. Each input data point is paired with its corresponding correct output label. The model makes predictions, measures its error relative to the label, and updates its internal parameters to minimize this deviation. Examples include linear regression, support vector machines, and deep neural networks.
+
+2. Unsupervised Learning:
+Unsupervised learning models receive unlabeled data. The system attempts to self-discover underlying structural patterns, clusters, or distributions within the data without human intervention. Standard tasks include clustering (e.g., K-Means) and dimensionality reduction (e.g., Principal Component Analysis).
+
+3. Core Optimization (Gradient Descent):
+Most machine learning systems optimize parameters using Gradient Descent. A mathematical loss function calculates prediction errors. The algorithm calculates the gradient (derivative) of the loss function with respect to weights, taking iterative steps in the direction of steepest descent (negative gradient) to find the minimum error configuration. The step size is controlled by a parameter called the learning rate.`,
+    summary: {
+      abstract: "Machine learning is the branch of AI that develops systems capable of learning patterns directly from data. It is categorized into supervised learning (training on labeled inputs to mapping outputs) and unsupervised learning (analyzing unlabeled datasets to reveal hidden clusters/structures). Optimization is driven by Gradient Descent, an algorithm that iteratively shifts model parameters in the direction of the negative gradient of a loss function to locate minimum error, with step size governed by the learning rate.",
+      bullets: [
+        "Subfield of AI focusing on data-driven model learning and adaptation.",
+        "Supervised learning trains models on input-label pairings to perform prediction/classification.",
+        "Unsupervised learning processes unlabeled data to identify clusters or patterns.",
+        "Gradient Descent iteratively minimizes a loss function by adjusting parameters.",
+        "The learning rate determines the size of the steps taken toward the loss function minimum."
+      ],
+      glossary: [
+        { term: "Supervised Learning", definition: "A type of machine learning where models are trained using labeled training datasets." },
+        { term: "Unsupervised Learning", definition: "Machine learning models trained on raw, unlabeled datasets to discover structures." },
+        { term: "Gradient Descent", definition: "An optimization algorithm used to minimize a loss function by adjusting parameters." },
+        { term: "Loss Function", definition: "A mathematical function that quantifies the difference between predictions and actual labels." },
+        { term: "Learning Rate", definition: "A hyperparameter that controls how much the model's weights adjust in response to estimated error gradients." }
+      ],
+      quiz: [
+        {
+          question: "Which branch of machine learning trains models using predefined target labels?",
+          options: ["Unsupervised Learning", "Supervised Learning", "Reinforcement Learning", "Heuristic Optimization"],
+          answerIndex: 1,
+          explanation: "Supervised learning relies on training data that contains both inputs and their corresponding correct output labels."
+        },
+        {
+          question: "Gradient descent is designed to achieve which mathematical objective?",
+          options: ["Maximize the learning rate", "Minimize a loss function", "Perform cluster grouping", "Label data points"],
+          answerIndex: 1,
+          explanation: "Gradient descent calculates weight adjustments to reduce errors, effectively minimizing the output of the loss function."
+        },
+        {
+          question: "K-Means clustering is classified under which category of machine learning?",
+          options: ["Supervised Learning", "Semi-supervised Learning", "Unsupervised Learning", "Neural Networks"],
+          answerIndex: 2,
+          explanation: "K-Means groups unlabeled data based on structural similarity, making it a classic unsupervised learning technique."
+        },
+        {
+          question: "What hyperparameter regulates the step sizes taken in Gradient Descent?",
+          options: ["Loss function weight", "Learning rate", "Epoch limit", "Activation slope"],
+          answerIndex: 1,
+          explanation: "The learning rate (often denoted by alpha) controls the magnitude of parameter adjustments during gradient descent iterations."
+        },
+        {
+          question: "What is a major risk of set learning rates that are configured too high?",
+          options: ["Model will freeze immediately", "Gradient will vanish to zero", "Algorithm may overshoot the minimum and fail to converge", "Training will take too long"],
+          answerIndex: 2,
+          explanation: "If the learning rate is too large, parameter updates can overshoot the target minimum, causing divergence and instability."
+        }
+      ],
+      flashcards: [
+        { front: "What is Supervised Learning?", back: "Training algorithms on datasets where inputs are paired with correct, verified output labels." },
+        { front: "Define Gradient Descent", back: "An iterative optimization algorithm that shifts parameters to minimize a mathematical loss function." },
+        { front: "What is a Loss Function?", back: "An equation measuring how far off a model's prediction is from the target label." },
+        { front: "What does learning rate control?", back: "The step size taken towards the minimum error gradient in training." },
+        { front: "Give an unsupervised task example", back: "Clustering raw consumer purchasing profiles without predefined labels." }
+      ]
+    }
   }
 };
 
-// --- TRIVIA QUESTIONS BANK ---
-const TRIVIA_BANK = {
-  'climate-science': [
-    {
-      question: "What is the primary mechanism of the greenhouse effect?",
-      options: [
-        "Atmospheric gases trapping infrared radiation (heat) emitted from Earth's surface",
-        "Ozone layer depletion letting in more harmful UV radiation from the sun",
-        "Acid rain chemical reactions heating up soil and water systems",
-        "Oceans releasing carbon dioxide gas when they get hit by solar flares"
-      ],
-      answerIndex: 0,
-      explanation: "Greenhouse gases (like CO2 and water vapor) absorb thermal infrared radiation emitted by the Earth and re-radiate it in all directions, warming the atmosphere."
-    },
-    {
-      question: "Which of the following greenhouse gases is the most abundant in Earth's atmosphere overall?",
-      options: [
-        "Carbon Dioxide (CO2)",
-        "Water Vapor (H2O)",
-        "Methane (CH4)",
-        "Nitrous Oxide (N2O)"
-      ],
-      answerIndex: 1,
-      explanation: "Water vapor is the most abundant greenhouse gas. However, human activities primarily increase CO2, which persists much longer and drives global warming."
-    },
-    {
-      question: "What is the primary cause of ocean acidification?",
-      options: [
-        "Acid rain carrying agricultural runoff into rivers",
-        "The absorption of excess atmospheric CO2 by seawater",
-        "Microplastics dissolving into toxic chemical compounds",
-        "Underwater volcanic eruptions releasing sulfuric acid"
-      ],
-      answerIndex: 1,
-      explanation: "As atmospheric CO2 levels rise, oceans absorb more of it. This chemical reaction produces carbonic acid, lowering seawater pH and harming marine life."
-    },
-    {
-      question: "What percentage of the excess heat trapped by greenhouse gases is absorbed by oceans?",
-      options: [
-        "Approximately 10%",
-        "Approximately 30%",
-        "Approximately 50%",
-        "Approximately 90%"
-      ],
-      answerIndex: 3,
-      explanation: "Oceans absorb over 90% of the excess heat trapped by greenhouse gases, buffering atmospheric warming but causing ocean warming and expansion."
-    },
-    {
-      question: "Which Arctic phenomenon accelerates global warming when sea ice melts?",
-      options: [
-        "Albedo effect reduction (dark open water absorbs more solar heat than white ice)",
-        "Geothermal heat release from the seabed",
-        "Increased solar wind deflection near the magnetic north pole",
-        "Rapid ozone creation in cold upper atmospheric layers"
-      ],
-      answerIndex: 0,
-      explanation: "Sea ice reflects solar energy back to space. When it melts, dark ocean water absorbs it instead, heating the region further in a positive feedback loop."
-    }
-  ],
-  'carbon-footprint': [
-    {
-      question: "What is the average global carbon footprint per person per year?",
-      options: [
-        "Around 1.5 tonnes CO2e",
-        "Around 4.7 tonnes CO2e",
-        "Around 16.0 tonnes CO2e",
-        "Around 35.0 tonnes CO2e"
-      ],
-      answerIndex: 1,
-      explanation: "According to the World Bank, the average global per capita footprint is about 4.7 tonnes, though developed nations like the US average over 14 tonnes."
-    },
-    {
-      question: "Which phase of a food product's lifecycle generally accounts for the largest share of its carbon emissions?",
-      options: [
-        "On-farm production (land use, methane from animals, fertilizers)",
-        "Long-distance transportation and distribution (food miles)",
-        "Packaging (cardboard, plastics, aluminum foil)",
-        "Retail refrigeration and household cooking energy"
-      ],
-      answerIndex: 0,
-      explanation: "On-farm agricultural production accounts for about 80% of food carbon footprints. Eating local is good, but eating plant-based reduces footprints much more."
-    },
-    {
-      question: "Approximately how much carbon dioxide does one mature tree absorb per year?",
-      options: [
-        "About 2.2 kg CO2",
-        "About 22.0 kg CO2",
-        "About 120.0 kg CO2",
-        "About 500.0 kg CO2"
-      ],
-      answerIndex: 1,
-      explanation: "An average mature tree sequesteres around 22 kilograms (48 lbs) of carbon dioxide annually, making reforestation a key carbon offsetting method."
-    },
-    {
-      question: "Which method of laundry washing reduces carbon footprint the most?",
-      options: [
-        "Washing at 30°C or cold cycle (air drying instead of machine tumble drying)",
-        "Using extra liquid detergent in warm water cycles",
-        "Running short wash cycles at 60°C",
-        "Dry cleaning garments instead of machine washing"
-      ],
-      answerIndex: 0,
-      explanation: "Over 75% of a washing machine's footprint goes to heating water. Washing cold and line-drying cuts laundry energy consumption by 90%."
-    },
-    {
-      question: "What is considered a 'carbon offset'?",
-      options: [
-        "A mechanism that balances emissions by funding equivalent carbon reductions elsewhere",
-        "A tax penalty applied to corporations exceeding greenhouse limits",
-        "A filter installed on industrial chimneys to capture solid soot particles",
-        "Replacing a petrol vehicle with a larger diesel car"
-      ],
-      answerIndex: 0,
-      explanation: "Carbon offsets represent actions (like planting trees or building clean energy) that remove or prevent CO2 emissions to compensate for emissions made elsewhere."
-    }
-  ],
-  'renewables': [
-    {
-      question: "Which energy source is classified as clean and completely renewable?",
-      options: [
-        "Geothermal energy",
-        "Natural gas (methane)",
-        "Clean coal technology",
-        "Nuclear fission energy"
-      ],
-      answerIndex: 0,
-      explanation: "Geothermal energy utilizes heat from the Earth's core. It is renewable and produces near-zero greenhouse gas emissions."
-    },
-    {
-      question: "What type of technology generates electricity directly from sunlight?",
-      options: [
-        "Photovoltaic (PV) cells",
-        "Solar thermal parabolic troughs",
-        "Photosynthetic bio-reactors",
-        "Galvanic hydrogen fuel cells"
-      ],
-      answerIndex: 0,
-      explanation: "Photovoltaic cells use semiconductor materials to absorb photons and generate free electrons, converting light directly into electric currents."
-    },
-    {
-      question: "Which clean energy source is highly weather-dependent but has the lowest operational footprint?",
-      options: [
-        "Wind energy",
-        "Biomass combustion",
-        "Petroleum generator systems",
-        "Natural gas micro-turbines"
-      ],
-      answerIndex: 0,
-      explanation: "Wind turbines generate zero carbon during operations, though their output fluctuates based on local weather conditions."
-    }
-  ],
-  'biodiversity': [
-    {
-      question: "What is a 'keystone species' in ecology?",
-      options: [
-        "A species that has a disproportionately large impact on its ecosystem relative to its abundance",
-        "A species that was first introduced from an external geographic continent",
-        "A micro-organism that lives inside mineral rocks and stone formations",
-        "A plant species that yields heavy wood used for construction keystones"
-      ],
-      answerIndex: 0,
-      explanation: "Keystone species (like sea otters or wolves) maintain the structure of their ecological communities. Removing them can collapse the entire ecosystem."
-    },
-    {
-      question: "What is currently the leading driver of global biodiversity loss?",
-      options: [
-        "Habitat destruction and land-use change (deforestation, agriculture)",
-        "Overhunting and direct harvesting of animals",
-        "Invasive alien species displacing native plants",
-        "Chemical pollution of oceanic reef systems"
-      ],
-      answerIndex: 0,
-      explanation: "Clearing forests for agriculture, urbanization, and timber destroys habitats, presenting the largest threat to terrestrial species today."
-    }
-  ]
-};
-
-// --- PRE-CODED ECO CHALLENGES ---
-const CHALLENGE_LIBRARY = [
-  { id: 'ch_meatless', name: 'Meatless Monday', desc: 'Eat plant-based meals today.', category: 'food', reward: 2.5 },
-  { id: 'ch_nocar', name: 'No-Car Commute', desc: 'Use public transit, cycle, or walk.', category: 'transport', reward: 5.0 },
-  { id: 'ch_coldwash', name: 'Cold Water Cycle', desc: 'Wash laundry on cold setting and line dry.', category: 'energy', reward: 1.2 },
-  { id: 'ch_standby', name: 'Standby Shutdown', desc: 'Unplug idle electronics and chargers.', category: 'energy', reward: 0.6 },
-  { id: 'ch_recycleday', name: 'Zero Waste Focus', desc: 'Recycle all waste and compost organic matter.', category: 'waste', reward: 1.5 }
-];
-
-// --- RECOMMENDATION TIPS BANK ---
-const RECOMMENDATIONS = [
-  { category: 'transport', title: 'Carpool or Transit', text: 'Sharing a ride cuts travel emissions by 50%. Public transit reduces it even further.' },
-  { category: 'transport', title: 'Maintain Tires & Speed', text: 'Under-inflated tires increase fuel consumption by 3%. Driving smoothly saves petrol.' },
-  { category: 'transport', title: 'Active Transit', text: 'Biking or walking produces zero emissions and provides a healthy cardiovascular workout.' },
-  
-  { category: 'food', title: 'Incorporate Plant Meals', text: 'Substituting beef with beans/tofu even once a week significantly lowers your agricultural footprint.' },
-  { category: 'food', title: 'Minimize Food Waste', text: 'Rotting food in landfills produces methane. Meal prep carefully and compost leftovers.' },
-  { category: 'food', title: 'Choose Local & Seasonal', text: 'Reduces heavy transport miles and emissions from long-term temperature-controlled storage.' },
-  
-  { category: 'energy', title: 'Thermostat Adjustment', text: 'Adjusting your thermostat by 1°C can lower your home heating or cooling bill by 8%.' },
-  { category: 'energy', title: 'LED Bulb Upgrades', text: 'LEDs consume 80% less energy than incandescent bulbs and last up to 25 times longer.' },
-  { category: 'energy', title: 'Unplug Phantom Loads', text: 'Appliances on standby draw trickle power. Unplug chargers or use smart power strips.' },
-  
-  { category: 'waste', title: 'Avoid Single-Use Plastics', text: 'Producing plastic is highly petrochemical intensive. Choose reusable bags and cups.' },
-  { category: 'waste', title: 'Strict Recycler Habits', text: 'Clean glass, paper, and metals before throwing them in recycle bins to prevent contamination.' },
-  { category: 'waste', title: 'Repair Before Disposing', text: 'Fixing items or purchasing second-hand items prevents industrial manufacturing footprints.' }
-];
 
 // --- WEB AUDIO SYNTHESIZED SOUND ENGINE ---
 const SoundFX = {
@@ -286,14 +276,36 @@ const SoundFX = {
     gain.connect(this.ctx.destination);
 
     osc.type = 'triangle';
-    osc.frequency.setValueAtTime(500, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(180, this.ctx.currentTime + 0.08);
+    osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(150, this.ctx.currentTime + 0.08);
 
-    gain.gain.setValueAtTime(0.06, this.ctx.currentTime);
+    gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
     gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.08);
 
     osc.start();
     osc.stop(this.ctx.currentTime + 0.08);
+  },
+
+  playFlip() {
+    if (!state.audioEnabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(250, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.15);
+
+    gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.15);
+
+    osc.start();
+    osc.stop(this.ctx.currentTime + 0.15);
   },
 
   playSuccess() {
@@ -302,7 +314,7 @@ const SoundFX = {
     if (!this.ctx) return;
 
     const now = this.ctx.currentTime;
-    // Eco arpeggio (C4 -> E4 -> G4 -> C5)
+    // Play a happy major triad arpeggio (C4, E4, G4, C5)
     const notes = [261.63, 329.63, 392.00, 523.25];
     const duration = 0.12;
 
@@ -316,7 +328,7 @@ const SoundFX = {
       osc.type = 'sine';
       osc.frequency.setValueAtTime(freq, now + idx * 0.07);
 
-      gain.gain.setValueAtTime(0.06, now + idx * 0.07);
+      gain.gain.setValueAtTime(0.08, now + idx * 0.07);
       gain.gain.linearRampToValueAtTime(0.001, now + idx * 0.07 + duration);
 
       osc.start(now + idx * 0.07);
@@ -335,67 +347,40 @@ const SoundFX = {
     osc.connect(gain);
     gain.connect(this.ctx.destination);
 
-    // Low alert slide
+    // Play a low dissonant slide
     osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(150, this.ctx.currentTime);
-    osc.frequency.linearRampToValueAtTime(80, this.ctx.currentTime + 0.25);
+    osc.frequency.setValueAtTime(180, this.ctx.currentTime);
+    osc.frequency.linearRampToValueAtTime(90, this.ctx.currentTime + 0.25);
 
-    gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+    gain.gain.setValueAtTime(0.06, this.ctx.currentTime);
     gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.25);
 
     osc.start();
     osc.stop(this.ctx.currentTime + 0.25);
-  },
-
-  playChallengeComplete() {
-    if (!state.audioEnabled) return;
-    this.init();
-    if (!this.ctx) return;
-
-    const now = this.ctx.currentTime;
-    const notes = [349.23, 440.00, 523.25, 698.46, 880.00]; // F major arpeggio
-    const duration = 0.15;
-
-    notes.forEach((freq, idx) => {
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(freq, now + idx * 0.06);
-
-      gain.gain.setValueAtTime(0.08, now + idx * 0.06);
-      gain.gain.linearRampToValueAtTime(0.001, now + idx * 0.06 + duration);
-
-      osc.start(now + idx * 0.06);
-      osc.stop(now + idx * 0.06 + duration);
-    });
   }
 };
 
-// --- SYSTEM INITIALIZATION & LOCAL STORAGE SYNC ---
+
+// --- LOCALSTORAGE SYNC & INITIALIZATION ---
 function loadStateFromStorage() {
-  const stored = localStorage.getItem('terralyze_state');
+  const stored = localStorage.getItem('edugenie_state');
   if (stored) {
     try {
       const parsed = JSON.parse(stored);
       state = { ...state, ...parsed };
       
-      // Reset non-persist states
-      state.triviaActive = false;
-      state.triviaTimerInterval = null;
+      // Reset session-running states on refresh
+      state.sessionIsRunning = false;
+      state.sessionSecondsElapsed = 0;
+      state.sessionTimerInterval = null;
+      state.quizTimerInterval = null;
     } catch (e) {
       console.error("Failed to parse local storage state", e);
     }
-  } else {
-    // Populate some default history logs for representation
-    generateDefaultLogs();
   }
   
+  // Date check for streak validation
   checkStreakProgression();
-  initializeChallengesState();
   saveStateToStorage();
 }
 
@@ -403,61 +388,17 @@ function saveStateToStorage() {
   const serializable = {
     streakCount: state.streakCount,
     lastActivityDate: state.lastActivityDate,
-    dailyTargetBudget: state.dailyTargetBudget,
+    notesCount: state.notesCount,
+    quizzesCount: state.quizzesCount,
+    cardsMasteredCount: state.cardsMasteredCount,
+    studyMinutes: state.studyMinutes,
+    dailyTargetMinutes: state.dailyTargetMinutes,
     activityLog: state.activityLog,
-    activeChallenges: state.activeChallenges,
-    simTrees: state.simTrees,
-    simBulbs: state.simBulbs,
-    simSolar: state.simSolar,
-    audioEnabled: state.audioEnabled
+    audioEnabled: state.audioEnabled,
+    flashcardDeck: state.flashcardDeck,
+    activeSummary: state.activeSummary
   };
-  localStorage.setItem('terralyze_state', JSON.stringify(serializable));
-}
-
-function generateDefaultLogs() {
-  const today = new Date();
-  const logs = [];
-  
-  // Create dummy logs for the past 6 days
-  for (let i = 6; i > 0; i--) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    const dateStr = d.toISOString().split('T')[0];
-    const timeStr = "18:30";
-    const ts = d.getTime();
-    
-    // Distribute carbon values across days
-    logs.push({
-      id: 'act_tr_' + ts,
-      type: 'transport',
-      description: `Commute: ${20 + i} km via Petrol Car`,
-      value: Number(((20 + i) * COEFFICIENTS.transport.car.petrol).toFixed(1)),
-      time: timeStr,
-      timestamp: ts,
-      dateStr: dateStr
-    });
-    logs.push({
-      id: 'act_fd_' + ts,
-      type: 'food',
-      description: `Diet: Prepared 3 Average Meals`,
-      value: Number((3 * COEFFICIENTS.food.average).toFixed(1)),
-      time: timeStr,
-      timestamp: ts + 1000,
-      dateStr: dateStr
-    });
-    logs.push({
-      id: 'act_en_' + ts,
-      type: 'energy',
-      description: `Home: Energy used (8 kWh grid)`,
-      value: Number((8 * COEFFICIENTS.energy.electricity).toFixed(1)),
-      time: timeStr,
-      timestamp: ts + 2000,
-      dateStr: dateStr
-    });
-  }
-  
-  state.activityLog = logs;
-  state.lastActivityDate = new Date(today.getTime() - 24*60*60*1000).toISOString().split('T')[0];
+  localStorage.setItem('edugenie_state', JSON.stringify(serializable));
 }
 
 function checkStreakProgression() {
@@ -466,13 +407,16 @@ function checkStreakProgression() {
   if (!state.lastActivityDate) {
     state.streakCount = 1;
     state.lastActivityDate = todayStr;
+    logActivity('welcome', 'Registered your first day of EduGenie AI study!');
     return;
   }
   
   if (state.lastActivityDate === todayStr) {
+    // Already did work today, streak intact
     return;
   }
   
+  // Check if yesterday
   const lastDate = new Date(state.lastActivityDate);
   const todayDate = new Date(todayStr);
   const diffTime = Math.abs(todayDate - lastDate);
@@ -481,145 +425,113 @@ function checkStreakProgression() {
   if (diffDays === 1) {
     state.streakCount += 1;
     state.lastActivityDate = todayStr;
+    logActivity('streak', `Streak extended! Day ${state.streakCount} is active.`);
     showToast('flame', `Streak extended! Day ${state.streakCount} streak active.`, 'warning');
   } else if (diffDays > 1) {
+    // Reset streak
     state.streakCount = 1;
     state.lastActivityDate = todayStr;
-    showToast('flame', 'New tracking streak started!', 'info');
+    logActivity('streak-reset', 'Study gap detected. Day 1 streak restarted.');
+    showToast('flame', 'New streak started! Stay consistent.', 'info');
   }
 }
 
-function initializeChallengesState() {
-  // Synchronize challenge library structure with saved state
-  if (state.activeChallenges.length === 0) {
-    state.activeChallenges = CHALLENGE_LIBRARY.map(ch => ({
-      id: ch.id,
-      joined: false,
-      completed: false
-    }));
-  } else {
-    // Check if new challenges were added to code
-    CHALLENGE_LIBRARY.forEach(ch => {
-      const exists = state.activeChallenges.some(saved => saved.id === ch.id);
-      if (!exists) {
-        state.activeChallenges.push({
-          id: ch.id,
-          joined: false,
-          completed: false
-        });
-      }
-    });
-  }
-}
-
-// --- DOM SYNC & METRIC CALCULATIONS ---
-function updateDashboardMetrics() {
-  const todayStr = new Date().toISOString().split('T')[0];
-  const logs = state.activityLog;
+function updateDashboardStats() {
+  document.getElementById('stat-notes-summarized').textContent = state.notesCount;
+  document.getElementById('stat-quizzes-taken').textContent = state.quizzesCount;
+  document.getElementById('stat-cards-mastered').textContent = state.cardsMasteredCount;
+  document.getElementById('stat-study-time').textContent = `${Math.round(state.studyMinutes)}m`;
   
-  // Calculate Today's footprint
-  const todayLogs = logs.filter(log => log.dateStr === todayStr && log.type !== 'offset');
-  const todayOffsetLogs = logs.filter(log => log.dateStr === todayStr && log.type === 'offset');
-  const todayRawVal = todayLogs.reduce((acc, curr) => acc + curr.value, 0);
-  const todayOffsets = todayOffsetLogs.reduce((acc, curr) => acc + curr.value, 0);
-  const todayNet = Math.max(0, todayRawVal - todayOffsets);
-  
-  document.getElementById('stat-today-co2').textContent = `${todayNet.toFixed(1)} kg`;
-  
-  // Calculate Weekly Footprint (last 7 days total)
-  const last7DaysLimit = Date.now() - 7 * 24 * 60 * 60 * 1000;
-  const weeklyLogs = logs.filter(log => log.timestamp >= last7DaysLimit && log.type !== 'offset');
-  const weeklyOffsetLogs = logs.filter(log => log.timestamp >= last7DaysLimit && log.type === 'offset');
-  const weeklyRaw = weeklyLogs.reduce((acc, curr) => acc + curr.value, 0);
-  const weeklyOffsetVal = weeklyOffsetLogs.reduce((acc, curr) => acc + curr.value, 0);
-  const weeklyNet = Math.max(0, weeklyRaw - weeklyOffsetVal);
-  
-  document.getElementById('stat-weekly-co2').textContent = `${weeklyNet.toFixed(1)} kg`;
-  
-  // Calculate Daily Average (over days with active records in the last week)
-  const uniqueDays = new Set(weeklyLogs.map(log => log.dateStr));
-  const activeDaysCount = uniqueDays.size || 1;
-  const dailyAverage = weeklyNet / activeDaysCount;
-  
-  document.getElementById('stat-weekly-avg').textContent = `${dailyAverage.toFixed(1)} kg`;
-  
-  // Total offsets (challenges completed total)
-  const totalOffsetVal = logs.filter(log => log.type === 'offset').reduce((acc, curr) => acc + curr.value, 0);
-  document.getElementById('stat-total-offsets').textContent = `${totalOffsetVal.toFixed(1)} kg`;
-  
-  // Update header and dashboard budget progression
-  const budgetLimit = state.dailyTargetBudget;
-  const budgetPercentage = Math.min(100, Math.round((todayNet / budgetLimit) * 100));
-  
-  // Header circle (Radius = 16, Circumference = 2 * PI * 16 = 100.5)
-  const headerCircle = document.getElementById('header-goal-circle');
-  const headerOffset = 100.5 - (budgetPercentage / 100) * 100.5;
-  headerCircle.style.strokeDashoffset = headerOffset;
-  document.getElementById('header-goal-pct').textContent = `${budgetPercentage}%`;
-  document.getElementById('header-goal-text').textContent = `${todayNet.toFixed(1)} / ${budgetLimit.toFixed(1)} kg`;
-  
-  // Dashboard circle (Radius = 65, Circumference = 2 * PI * 65 = 408.4)
-  const dashCircle = document.getElementById('dashboard-goal-circle');
-  const dashOffset = 408.4 - (budgetPercentage / 100) * 408.4;
-  dashCircle.style.strokeDashoffset = dashOffset;
-  document.getElementById('dashboard-goal-pct').textContent = `${budgetPercentage}%`;
-  document.getElementById('dashboard-goal-val').textContent = `${todayNet.toFixed(1)} / ${budgetLimit.toFixed(1)} kg`;
-  
-  // Dynamic stroke color indicator (Green when safe, Red when over budget)
-  if (todayNet > budgetLimit) {
-    dashCircle.style.stroke = 'var(--accent-red)';
-    headerCircle.style.stroke = 'var(--accent-red)';
-    document.getElementById('dashboard-goal-sublabel').textContent = 'Limit Exceeded';
-    document.getElementById('dashboard-goal-sublabel').className = 'large-sublabel text-yellow';
-  } else {
-    dashCircle.style.stroke = 'var(--primary-mint)';
-    headerCircle.style.stroke = 'var(--primary-mint)';
-    document.getElementById('dashboard-goal-sublabel').textContent = 'Emitted';
-    document.getElementById('dashboard-goal-sublabel').className = 'large-sublabel';
-  }
-  
-  // Mini streaks
   document.getElementById('mini-streak-count').textContent = state.streakCount;
   document.getElementById('streak-count-value').textContent = state.streakCount;
   
-  // Refresh list and chart
-  renderActivityLogs();
-  renderWeeklyChart();
+  // Progress circles
+  const target = state.dailyTargetMinutes;
+  const current = state.studyMinutes;
+  const percentage = Math.min(100, Math.round((current / target) * 100));
+  
+  // Header circle (Radius = 16, Circumference = 2 * PI * 16 = 100.5)
+  const headerCircle = document.getElementById('header-goal-circle');
+  const headerOffset = 100.5 - (percentage / 100) * 100.5;
+  headerCircle.style.strokeDashoffset = headerOffset;
+  document.getElementById('header-goal-pct').textContent = `${percentage}%`;
+  document.getElementById('header-goal-text').textContent = `${Math.round(current)}m / ${target}m`;
+  
+  // Dashboard circle (Radius = 65, Circumference = 2 * PI * 65 = 408.4)
+  const dashCircle = document.getElementById('dashboard-goal-circle');
+  const dashOffset = 408.4 - (percentage / 100) * 408.4;
+  dashCircle.style.strokeDashoffset = dashOffset;
+  document.getElementById('dashboard-goal-pct').textContent = `${percentage}%`;
+  document.getElementById('dashboard-goal-val').textContent = `${Math.round(current)} / ${target} mins`;
+  
+  // Activity Log
+  renderActivityLog();
+  
+  // Sync Flashcard Deck layout counters
+  document.getElementById('deck-card-count').textContent = state.flashcardDeck.length;
+  const mastered = state.flashcardDeck.filter(c => c.mastered).length;
+  const deckPct = state.flashcardDeck.length > 0 ? Math.round((mastered / state.flashcardDeck.length) * 100) : 0;
+  document.getElementById('deck-mastery-rate').textContent = `${deckPct}%`;
+  document.getElementById('deck-progress-bar').style.width = `${deckPct}%`;
 }
 
-function renderActivityLogs() {
+function logActivity(type, description) {
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const logItem = {
+    id: 'act_' + Date.now(),
+    type: type, // summarize, quiz, card, timer, welcome
+    description: description,
+    time: timeStr,
+    timestamp: Date.now()
+  };
+  state.activityLog.unshift(logItem);
+  if (state.activityLog.length > 25) {
+    state.activityLog.pop();
+  }
+  saveStateToStorage();
+}
+
+function renderActivityLog() {
   const container = document.getElementById('activity-log-list');
-  const logs = state.activityLog;
-  
-  if (logs.length === 0) {
+  if (state.activityLog.length === 0) {
     container.innerHTML = `
       <li class="empty-activity">
         <i data-lucide="calendar"></i>
-        <p>No activity logged today. Add items in the Calculator to track your carbon footprint!</p>
+        <p>No study activity logged today. Complete a task to begin tracking!</p>
       </li>
     `;
     lucide.createIcons();
     return;
   }
   
-  container.innerHTML = logs.map(log => {
+  container.innerHTML = state.activityLog.map(act => {
+    let iconClass = 'act-timer';
+    let iconName = 'timer';
+    
+    if (act.type === 'summarize') {
+      iconClass = 'act-summarize';
+      iconName = 'file-text';
+    } else if (act.type === 'quiz') {
+      iconClass = 'act-quiz';
+      iconName = 'award';
+    } else if (act.type === 'card' || act.type === 'card-mastery') {
+      iconClass = 'act-card';
+      iconName = 'layers';
+    } else if (act.type === 'streak' || act.type === 'welcome') {
+      iconClass = 'act-quiz';
+      iconName = 'sparkles';
+    }
+    
     return `
       <li class="activity-item">
-        <div class="activity-item-icon act-${log.type}">
-          <i data-lucide="${getIconForCategory(log.type)}"></i>
+        <div class="activity-item-icon ${iconClass}">
+          <i data-lucide="${iconName}"></i>
         </div>
         <div class="activity-item-content">
-          <p>${log.description}</p>
-          <div class="activity-item-meta">
-            <span>${log.dateStr} at ${log.time}</span>
-            <span class="${log.type === 'offset' ? 'text-green' : 'text-yellow'}" style="font-weight:700;">
-              ${log.type === 'offset' ? '-' : '+'}${log.value.toFixed(1)} kg CO2e
-            </span>
-          </div>
+          <p>${act.description}</p>
+          <div class="activity-item-time">${act.time}</div>
         </div>
-        <button class="btn-delete-log" onclick="deleteLogItem('${log.id}')" title="Delete record">
-          <i data-lucide="trash-2"></i>
-        </button>
       </li>
     `;
   }).join('');
@@ -627,891 +539,8 @@ function renderActivityLogs() {
   lucide.createIcons();
 }
 
-function getIconForCategory(cat) {
-  switch (cat) {
-    case 'transport': return 'car';
-    case 'food': return 'apple';
-    case 'energy': return 'zap';
-    case 'waste': return 'trash';
-    case 'offset': return 'award';
-    default: return 'leaf';
-  }
-}
 
-function deleteLogItem(id) {
-  SoundFX.playError();
-  state.activityLog = state.activityLog.filter(log => log.id !== id);
-  showToast('trash-2', 'Activity record removed.', 'danger');
-  saveStateToStorage();
-  updateDashboardMetrics();
-}
-
-// --- DYNAMIC SVG CHART GENERATION ---
-function renderWeeklyChart() {
-  const chart = document.getElementById('weekly-emissions-chart');
-  if (!chart) return;
-  
-  // Calculate stats for the last 7 calendar days
-  const today = new Date();
-  const labels = [];
-  const dailyValues = [];
-  
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    const dateStr = d.toISOString().split('T')[0];
-    
-    // Day short name label (e.g. "Mon")
-    const shortDayName = d.toLocaleDateString([], { weekday: 'short' });
-    labels.push(shortDayName);
-    
-    // Aggregate values for this day (net emissions)
-    const dayLogs = state.activityLog.filter(log => log.dateStr === dateStr && log.type !== 'offset');
-    const dayOffsets = state.activityLog.filter(log => log.dateStr === dateStr && log.type === 'offset');
-    const rawVal = dayLogs.reduce((acc, curr) => acc + curr.value, 0);
-    const offsetVal = dayOffsets.reduce((acc, curr) => acc + curr.value, 0);
-    const netVal = Math.max(0, rawVal - offsetVal);
-    dailyValues.push(netVal);
-  }
-  
-  // Sizing details
-  const width = chart.clientWidth || 320;
-  const height = 180;
-  const paddingLeft = 30;
-  const paddingRight = 10;
-  const paddingTop = 15;
-  const paddingBottom = 25;
-  
-  const plotWidth = width - paddingLeft - paddingRight;
-  const plotHeight = height - paddingTop - paddingBottom;
-  
-  const maxVal = Math.max(state.dailyTargetBudget * 1.2, ...dailyValues, 10);
-  
-  // Clear existing elements in SVG
-  chart.innerHTML = '';
-  
-  // Render grid lines & Y labels (0, Half, Max)
-  const gridVals = [0, maxVal / 2, maxVal];
-  gridVals.forEach(val => {
-    const y = paddingTop + plotHeight - (val / maxVal) * plotHeight;
-    // Line
-    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    line.setAttribute("x1", paddingLeft);
-    line.setAttribute("y1", y);
-    line.setAttribute("x2", width - paddingRight);
-    line.setAttribute("y2", y);
-    line.setAttribute("class", "chart-grid-line");
-    chart.appendChild(line);
-    
-    // Label
-    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    text.setAttribute("x", paddingLeft - 8);
-    text.setAttribute("y", y + 4);
-    text.setAttribute("class", "chart-text");
-    text.setAttribute("style", "text-anchor: end; font-size: 8px;");
-    text.textContent = `${val.toFixed(0)}`;
-    chart.appendChild(text);
-  });
-  
-  // Render budget line
-  const budgetY = paddingTop + plotHeight - (state.dailyTargetBudget / maxVal) * plotHeight;
-  const budgetLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
-  budgetLine.setAttribute("x1", paddingLeft);
-  budgetLine.setAttribute("y1", budgetY);
-  budgetLine.setAttribute("x2", width - paddingRight);
-  budgetLine.setAttribute("y2", budgetY);
-  budgetLine.setAttribute("stroke", "var(--accent-red)");
-  budgetLine.setAttribute("stroke-width", "1");
-  budgetLine.setAttribute("stroke-dasharray", "4 4");
-  chart.appendChild(budgetLine);
-  
-  // Render Columns
-  const barCount = dailyValues.length;
-  const barGap = 16;
-  const barWidth = (plotWidth - (barGap * (barCount - 1))) / barCount;
-  
-  dailyValues.forEach((val, i) => {
-    const colHeight = (val / maxVal) * plotHeight;
-    const x = paddingLeft + i * (barWidth + barGap);
-    const y = paddingTop + plotHeight - colHeight;
-    
-    // Draw bar rect
-    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-    rect.setAttribute("x", x);
-    rect.setAttribute("y", y);
-    rect.setAttribute("width", barWidth);
-    rect.setAttribute("height", Math.max(2, colHeight));
-    rect.setAttribute("rx", "4");
-    rect.setAttribute("class", "chart-bar");
-    
-    // Dynamic color: highlight in red if budget exceeded
-    if (val > state.dailyTargetBudget) {
-      rect.setAttribute("fill", "url(#red-gradient)");
-    } else {
-      rect.setAttribute("fill", "url(#eco-gradient)");
-    }
-    
-    // Mouse hover events for tooltips
-    const tooltip = document.getElementById('chart-tooltip');
-    rect.addEventListener('mouseenter', (e) => {
-      tooltip.style.display = 'block';
-      tooltip.textContent = `${val.toFixed(1)} kg CO2e`;
-      
-      const chartBox = chart.getBoundingClientRect();
-      const leftOffset = x + barWidth / 2 + paddingLeft;
-      tooltip.style.left = `${(x + barWidth / 2)}px`;
-      tooltip.style.top = `${y - 10}px`;
-    });
-    
-    rect.addEventListener('mouseleave', () => {
-      tooltip.style.display = 'none';
-    });
-    
-    chart.appendChild(rect);
-    
-    // Draw X Label below bar
-    const xLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    xLabel.setAttribute("x", x + barWidth / 2);
-    xLabel.setAttribute("y", height - 6);
-    xLabel.setAttribute("class", "chart-text");
-    xLabel.textContent = labels[i];
-    chart.appendChild(xLabel);
-  });
-  
-  // Defs for gradients
-  const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
-  
-  // Eco Mint gradient
-  const ecoGrad = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
-  ecoGrad.setAttribute("id", "eco-gradient");
-  ecoGrad.setAttribute("x1", "0%");
-  ecoGrad.setAttribute("y1", "0%");
-  ecoGrad.setAttribute("x2", "0%");
-  ecoGrad.setAttribute("y2", "100%");
-  ecoGrad.innerHTML = `
-    <stop offset="0%" stop-color="var(--primary-mint)" />
-    <stop offset="100%" stop-color="var(--primary-green)" stop-opacity="0.3" />
-  `;
-  defs.appendChild(ecoGrad);
-  
-  // Red Alert gradient
-  const redGrad = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
-  redGrad.setAttribute("id", "red-gradient");
-  redGrad.setAttribute("x1", "0%");
-  redGrad.setAttribute("y1", "0%");
-  redGrad.setAttribute("x2", "0%");
-  redGrad.setAttribute("y2", "100%");
-  redGrad.innerHTML = `
-    <stop offset="0%" stop-color="var(--accent-red)" />
-    <stop offset="100%" stop-color="var(--accent-orange)" stop-opacity="0.3" />
-  `;
-  defs.appendChild(redGrad);
-  
-  chart.appendChild(defs);
-}
-
-// --- DYNAMIC RECOMMENDER SYSTEM ---
-function updateActionTips() {
-  const logs = state.activityLog;
-  const container = document.getElementById('tips-container');
-  if (!container) return;
-  
-  // Categorize log values to find the user's highest impact category
-  const totals = { transport: 0, food: 0, energy: 0, waste: 0 };
-  logs.forEach(log => {
-    if (totals[log.type] !== undefined) {
-      totals[log.type] += log.value;
-    }
-  });
-  
-  // Find highest category
-  let maxCat = 'transport';
-  let maxVal = 0;
-  for (const cat in totals) {
-    if (totals[cat] > maxVal) {
-      maxVal = totals[cat];
-      maxCat = cat;
-    }
-  }
-  
-  // Get active filter
-  const activeFilterBtn = document.querySelector('.filter-badge.active');
-  const filter = activeFilterBtn ? activeFilterBtn.getAttribute('data-filter') : 'all';
-  
-  // Filter tips list
-  let matchingTips = [];
-  if (filter === 'all') {
-    // Return all tips, prioritizing those from the highest carbon category
-    const highCatTips = RECOMMENDATIONS.filter(t => t.category === maxCat);
-    const otherTips = RECOMMENDATIONS.filter(t => t.category !== maxCat);
-    matchingTips = [...highCatTips, ...otherTips];
-  } else {
-    matchingTips = RECOMMENDATIONS.filter(t => t.category === filter);
-  }
-  
-  // Render
-  container.innerHTML = matchingTips.map(tip => {
-    return `
-      <div class="tip-card">
-        <div class="tip-icon val-${getThemeForCategory(tip.category)}">
-          <i data-lucide="${getIconForCategory(tip.category)}"></i>
-        </div>
-        <div class="tip-details">
-          <h4>${tip.title} ${tip.category === maxCat && filter === 'all' ? '<span class="text-yellow" style="font-size:0.65rem; font-weight:800; border: 1px solid var(--accent-yellow); padding: 1px 4px; border-radius: 4px; margin-left: 5px;">HIGH IMPACT</span>' : ''}</h4>
-          <p>${tip.text}</p>
-          <span class="tip-co2-badge">Saves CO2</span>
-        </div>
-      </div>
-    `;
-  }).join('');
-  
-  lucide.createIcons();
-}
-
-function getThemeForCategory(cat) {
-  switch (cat) {
-    case 'transport': return 'blue';
-    case 'food': return 'green';
-    case 'energy': return 'orange';
-    case 'waste': return 'yellow';
-    default: return 'green';
-  }
-}
-
-// Bind tips filter chip listeners
-document.querySelectorAll('.filter-badge').forEach(badge => {
-  badge.addEventListener('click', (e) => {
-    SoundFX.playClick();
-    document.querySelectorAll('.filter-badge').forEach(b => b.classList.remove('active'));
-    badge.classList.add('active');
-    updateActionTips();
-  });
-});
-
-// --- ECO CHALLENGES WORKSPACE ---
-function renderChallengesList() {
-  const container = document.getElementById('challenges-container');
-  if (!container) return;
-  
-  container.innerHTML = CHALLENGE_LIBRARY.map(ch => {
-    const savedState = state.activeChallenges.find(item => item.id === ch.id) || { joined: false, completed: false };
-    
-    let buttonHtml = `<button class="btn btn-xs btn-secondary" onclick="joinChallenge('${ch.id}')">Join Challenge</button>`;
-    let cardClass = '';
-    
-    if (savedState.completed) {
-      buttonHtml = `<span class="text-green" style="font-weight:700; font-size:0.8rem; display:flex; align-items:center; gap:0.25rem;"><i data-lucide="check-circle" style="width:14px;height:14px;"></i> Completed</span>`;
-      cardClass = 'completed';
-    } else if (savedState.joined) {
-      buttonHtml = `<button class="btn btn-xs btn-primary" onclick="completeChallenge('${ch.id}')">Complete</button>`;
-      cardClass = 'joined';
-    }
-    
-    return `
-      <div class="challenge-card ${cardClass}">
-        <div class="challenge-info">
-          <h4>${ch.name}</h4>
-          <p class="subtext" style="font-size:0.8rem;">${ch.desc}</p>
-          <div class="challenge-reward">
-            <i data-lucide="trending-down"></i>
-            <span>Saves ${ch.reward.toFixed(1)} kg CO2e</span>
-          </div>
-        </div>
-        <div class="challenge-action-col">
-          ${buttonHtml}
-        </div>
-      </div>
-    `;
-  }).join('');
-  
-  lucide.createIcons();
-}
-
-function joinChallenge(id) {
-  SoundFX.playClick();
-  const ch = state.activeChallenges.find(item => item.id === id);
-  if (ch) {
-    ch.joined = true;
-    showToast('award', `Joined challenge! Finish it today to log carbon offsets.`, 'info');
-    saveStateToStorage();
-    renderChallengesList();
-  }
-}
-
-function completeChallenge(id) {
-  SoundFX.playChallengeComplete();
-  const ch = state.activeChallenges.find(item => item.id === id);
-  const chInfo = CHALLENGE_LIBRARY.find(lib => lib.id === id);
-  
-  if (ch && chInfo) {
-    ch.completed = true;
-    
-    // Log offset activity
-    const todayStr = new Date().toISOString().split('T')[0];
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    
-    state.activityLog.unshift({
-      id: 'offset_' + Date.now(),
-      type: 'offset',
-      description: `Challenge: Completed "${chInfo.name}"`,
-      value: chInfo.reward,
-      time: timeStr,
-      timestamp: Date.now(),
-      dateStr: todayStr
-    });
-    
-    showToast('heart', `Success! Offset ${chInfo.reward} kg carbon.`, 'success');
-    saveStateToStorage();
-    renderChallengesList();
-    updateDashboardMetrics();
-  }
-}
-
-// --- OFFSET SIMULATOR & VIRTUAL FOREST RESERVE ---
-const simTreesInput = document.getElementById('sim-trees');
-const simBulbsInput = document.getElementById('sim-bulbs');
-const simSolarInput = document.getElementById('sim-solar');
-const forestGrid = document.getElementById('virtual-forest-grid');
-
-function updateOffsetSimulator() {
-  const trees = parseInt(simTreesInput.value);
-  const bulbs = parseInt(simBulbsInput.value);
-  const solar = parseInt(simSolarInput.value);
-  
-  // Save sliders to state
-  state.simTrees = trees;
-  state.simBulbs = bulbs;
-  state.simSolar = solar;
-  saveStateToStorage();
-  
-  // Update textual badges
-  document.getElementById('sim-trees-val').textContent = `${trees} tree${trees === 1 ? '' : 's'}`;
-  document.getElementById('sim-bulbs-val').textContent = `${bulbs} bulb${bulbs === 1 ? '' : 's'}`;
-  document.getElementById('sim-solar-val').textContent = solar === 1 ? 'Installed (Active)' : 'Off';
-  
-  // Calculate projected annual offset savings
-  const annualSaved = (trees * 22.0) + (bulbs * 15.0) + (solar * 1200.0);
-  document.getElementById('sim-projected-reduction').textContent = `${annualSaved.toLocaleString(undefined, {maximumFractionDigits:0})} kg CO2/yr saved`;
-  
-  // Render virtual forest (generate tree element counts)
-  if (trees === 0) {
-    forestGrid.innerHTML = `
-      <div class="empty-forest-msg">
-        <i data-lucide="sprout"></i>
-        <p>Your reserve is currently barren. Adjust the sliders in the Action Sim Studio to grow trees and generate carbon offsets!</p>
-      </div>
-    `;
-    lucide.createIcons();
-  } else {
-    // Generate tree icon grids
-    let forestHtml = '';
-    for (let i = 0; i < trees; i++) {
-      forestHtml += `<i data-lucide="tree-pine" class="forest-tree" style="animation-delay: ${i * 0.02}s"></i>`;
-    }
-    forestGrid.innerHTML = forestHtml;
-    lucide.createIcons();
-  }
-}
-
-// Bind Simulator slider listeners
-[simTreesInput, simBulbsInput, simSolarInput].forEach(slider => {
-  slider.addEventListener('input', () => {
-    updateOffsetSimulator();
-    if (slider === simTreesInput) SoundFX.playClick();
-  });
-});
-
-// --- CARBON CALCULATOR REAL-TIME ESTIMATE ENGINE ---
-const calcTabs = document.querySelectorAll('.calc-tab-btn');
-const calcViews = document.querySelectorAll('.calc-form-view');
-
-// Active calculator sub-tabs toggler
-calcTabs.forEach(tab => {
-  tab.addEventListener('click', () => {
-    SoundFX.playClick();
-    calcTabs.forEach(t => t.classList.remove('active'));
-    calcViews.forEach(v => v.classList.remove('hidden'));
-    calcViews.forEach(v => v.classList.remove('active'));
-    
-    tab.classList.add('active');
-    const targetType = tab.getAttribute('data-type');
-    state.calcCategory = targetType;
-    
-    const targetView = document.getElementById(`form-${targetType}`);
-    if (targetView) targetView.classList.add('active');
-    
-    calculateRealTimeEstimate();
-  });
-});
-
-// Segmented controls for Transport mode
-const modeSegmentBtns = document.querySelectorAll('#transport-mode-selector .segment-btn');
-modeSegmentBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
-    SoundFX.playClick();
-    modeSegmentBtns.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    
-    const mode = btn.getAttribute('data-mode');
-    const fuelGroup = document.getElementById('car-fuel-group');
-    
-    if (mode === 'car') {
-      fuelGroup.classList.remove('hidden');
-    } else {
-      fuelGroup.classList.add('hidden');
-    }
-    
-    calculateRealTimeEstimate();
-  });
-});
-
-// Range slider indicators auto-update & trigger compute
-const inputsToWatch = [
-  { id: 'transport-distance', indicatorId: 'transport-distance-val', suffix: ' km' },
-  { id: 'food-meals', indicatorId: 'food-meals-val', suffix: ' meal', pluralSuffix: ' meals' },
-  { id: 'energy-electricity', indicatorId: 'energy-electricity-val', suffix: ' kWh' },
-  { id: 'energy-gas', indicatorId: 'energy-gas-val', suffix: ' kWh' },
-  { id: 'energy-renewable', indicatorId: 'energy-renewable-val', suffix: '%' },
-  { id: 'waste-amount', indicatorId: 'waste-amount-val', suffix: ' kg' },
-  { id: 'waste-recycle', indicatorId: 'waste-recycle-val', suffix: '%' }
-];
-
-inputsToWatch.forEach(item => {
-  const el = document.getElementById(item.id);
-  if (el) {
-    el.addEventListener('input', () => {
-      const val = parseFloat(el.value);
-      const indicator = document.getElementById(item.indicatorId);
-      
-      if (item.pluralSuffix && val !== 1) {
-        indicator.textContent = val + item.pluralSuffix;
-      } else {
-        indicator.textContent = val + item.suffix;
-      }
-      
-      calculateRealTimeEstimate();
-    });
-  }
-});
-
-// Car fuel type selector change
-const fuelSelector = document.getElementById('car-fuel-type');
-if (fuelSelector) {
-  fuelSelector.addEventListener('change', calculateRealTimeEstimate);
-}
-
-// Core calculator estimation computation
-function calculateRealTimeEstimate() {
-  const currentTab = state.calcCategory;
-  let co2 = 0;
-  
-  let transVal = 0;
-  let foodVal = 0;
-  let energyVal = 0;
-  let wasteVal = 0;
-  
-  // 1. Calculate Transport
-  const selectedModeBtn = document.querySelector('#transport-mode-selector .segment-btn.active');
-  const mode = selectedModeBtn ? selectedModeBtn.getAttribute('data-mode') : 'car';
-  const dist = parseFloat(document.getElementById('transport-distance').value);
-  
-  if (mode === 'car') {
-    const fuel = document.getElementById('car-fuel-type').value;
-    const factor = COEFFICIENTS.transport.car[fuel];
-    transVal = dist * factor;
-  } else if (mode === 'transit') {
-    transVal = dist * COEFFICIENTS.transport.transit;
-  } else if (mode === 'flight') {
-    transVal = dist * COEFFICIENTS.transport.flight;
-  } else {
-    transVal = dist * COEFFICIENTS.transport.bike;
-  }
-  
-  // 2. Calculate Food
-  const diet = document.getElementById('food-diet-type').value;
-  const meals = parseInt(document.getElementById('food-meals').value);
-  foodVal = meals * COEFFICIENTS.food[diet];
-  
-  // 3. Calculate Energy
-  const elec = parseFloat(document.getElementById('energy-electricity').value);
-  const gas = parseFloat(document.getElementById('energy-gas').value);
-  const cleanPct = parseFloat(document.getElementById('energy-renewable').value);
-  
-  const elecFootprint = elec * COEFFICIENTS.energy.electricity * (1 - cleanPct / 100);
-  const gasFootprint = gas * COEFFICIENTS.energy.gas;
-  energyVal = elecFootprint + gasFootprint;
-  
-  // 4. Calculate Waste
-  const wasteAmt = parseFloat(document.getElementById('waste-amount').value);
-  const recyclePct = parseFloat(document.getElementById('waste-recycle').value);
-  wasteVal = wasteAmt * COEFFICIENTS.waste.general * (1 - recyclePct / 100);
-  
-  // Display individual breakdown levels
-  document.getElementById('breakdown-val-transport').textContent = `${transVal.toFixed(1)} kg`;
-  document.getElementById('breakdown-val-food').textContent = `${foodVal.toFixed(1)} kg`;
-  document.getElementById('breakdown-val-energy').textContent = `${energyVal.toFixed(1)} kg`;
-  document.getElementById('breakdown-val-waste').textContent = `${wasteVal.toFixed(1)} kg`;
-  
-  // Adjust progress bar widths inside the comparison cards
-  const subMax = Math.max(transVal, foodVal, energyVal, wasteVal, 5.0);
-  document.getElementById('breakdown-bar-transport').style.width = `${(transVal / subMax) * 100}%`;
-  document.getElementById('breakdown-bar-food').style.width = `${(foodVal / subMax) * 100}%`;
-  document.getElementById('breakdown-bar-energy').style.width = `${(energyVal / subMax) * 100}%`;
-  document.getElementById('breakdown-bar-waste').style.width = `${(wasteVal / subMax) * 100}%`;
-  
-  // Define tab specific active estimate displays
-  if (currentTab === 'transport') co2 = transVal;
-  else if (currentTab === 'food') co2 = foodVal;
-  else if (currentTab === 'energy') co2 = energyVal;
-  else if (currentTab === 'waste') co2 = wasteVal;
-  
-  document.getElementById('calc-estimate-co2').textContent = `${co2.toFixed(1)} kg`;
-  return { co2, transVal, foodVal, energyVal, wasteVal };
-}
-
-// Log calculator inputs to activity database
-const logActivityBtn = document.getElementById('log-activity-btn');
-if (logActivityBtn) {
-  logActivityBtn.addEventListener('click', () => {
-    SoundFX.playSuccess();
-    const currentTab = state.calcCategory;
-    const { co2, transVal, foodVal, energyVal, wasteVal } = calculateRealTimeEstimate();
-    
-    const todayStr = new Date().toISOString().split('T')[0];
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    
-    let desc = '';
-    let val = 0;
-    
-    if (currentTab === 'transport') {
-      const selectedModeBtn = document.querySelector('#transport-mode-selector .segment-btn.active');
-      const mode = selectedModeBtn ? selectedModeBtn.textContent : 'Car';
-      const dist = document.getElementById('transport-distance').value;
-      desc = `Commute: ${dist} km via ${mode}`;
-      val = transVal;
-    } else if (currentTab === 'food') {
-      const dietText = document.getElementById('food-diet-type').options[document.getElementById('food-diet-type').selectedIndex].text;
-      const meals = document.getElementById('food-meals').value;
-      desc = `Diet: ${meals} meals (${dietText})`;
-      val = foodVal;
-    } else if (currentTab === 'energy') {
-      const elec = document.getElementById('energy-electricity').value;
-      desc = `Home: Energy logs (${elec} kWh electricity)`;
-      val = energyVal;
-    } else if (currentTab === 'waste') {
-      const wasteAmt = document.getElementById('waste-amount').value;
-      desc = `Waste: Disposed ${wasteAmt} kg household trash`;
-      val = wasteVal;
-    }
-    
-    // Insert into activity log
-    state.activityLog.unshift({
-      id: 'act_' + Date.now(),
-      type: currentTab,
-      description: desc,
-      value: val,
-      time: timeStr,
-      timestamp: Date.now(),
-      dateStr: todayStr
-    });
-    
-    showToast('check', `Added record to logs (+${val.toFixed(1)} kg CO2e)`, 'success');
-    
-    // Set last activity date to trigger streaks check on next visits
-    state.lastActivityDate = todayStr;
-    
-    saveStateToStorage();
-    updateDashboardMetrics();
-    updateActionTips();
-    
-    // Return view to main tab
-    switchTab('dashboard');
-  });
-}
-
-// --- CONFIG DAILY BUDGET LIMIT MODAL ---
-const goalModal = document.getElementById('goal-modal');
-const editGoalBtn = document.getElementById('edit-goal-btn');
-const closeGoalModalBtn = document.getElementById('close-goal-modal-btn');
-const cancelGoalBtn = document.getElementById('cancel-goal-btn');
-const saveGoalBtn = document.getElementById('save-goal-btn');
-
-if (editGoalBtn) {
-  editGoalBtn.addEventListener('click', () => {
-    SoundFX.playClick();
-    document.getElementById('goal-input-field').value = state.dailyTargetBudget;
-    goalModal.classList.remove('hidden');
-  });
-}
-
-function closeGoalModal() {
-  SoundFX.playClick();
-  goalModal.classList.add('hidden');
-}
-
-if (closeGoalModalBtn) closeGoalModalBtn.addEventListener('click', closeGoalModal);
-if (cancelGoalBtn) cancelGoalBtn.addEventListener('click', closeGoalModal);
-
-if (saveGoalBtn) {
-  saveGoalBtn.addEventListener('click', () => {
-    const budgetVal = parseFloat(document.getElementById('goal-input-field').value);
-    if (budgetVal >= 2 && budgetVal <= 100) {
-      state.dailyTargetBudget = budgetVal;
-      showToast('settings', `Target carbon budget configured to ${budgetVal.toFixed(1)} kg CO2e.`, 'success');
-      closeGoalModal();
-      updateDashboardMetrics();
-      saveStateToStorage();
-    } else {
-      showToast('alert-triangle', 'Configure budget range between 2 and 100 kg.', 'warning');
-    }
-  });
-}
-
-// --- ECO-TRIVIA GAME ENGINE ---
-const generateTriviaBtn = document.getElementById('generate-trivia-btn');
-const quitTriviaBtn = document.getElementById('quit-trivia-btn');
-const submitTriviaBtn = document.getElementById('submit-trivia-btn');
-const nextTriviaBtn = document.getElementById('next-trivia-btn');
-
-const triviaSetupPanel = document.getElementById('trivia-setup-panel');
-const triviaArenaPanel = document.getElementById('trivia-arena-panel');
-const triviaResultsPanel = document.getElementById('trivia-results-panel');
-
-if (generateTriviaBtn) {
-  generateTriviaBtn.addEventListener('click', () => {
-    SoundFX.playClick();
-    
-    const topic = document.getElementById('trivia-topic').value;
-    const size = parseInt(document.getElementById('trivia-size').value);
-    
-    // Load and shuffle questions for sizes
-    const questionsPool = TRIVIA_BANK[topic] || TRIVIA_BANK['climate-science'];
-    
-    // Quick array clone & random shuffle
-    let shuffled = [...questionsPool].sort(() => 0.5 - Math.random());
-    state.triviaQuestions = shuffled.slice(0, size);
-    
-    // Reset game parameters
-    state.currentTriviaIndex = 0;
-    state.triviaAnswers = [];
-    state.triviaScore = 0;
-    state.triviaActive = true;
-    state.triviaTimeElapsed = 0;
-    
-    triviaSetupPanel.classList.add('hidden');
-    triviaArenaPanel.classList.remove('hidden');
-    triviaResultsPanel.classList.add('hidden');
-    
-    // Start game timer
-    clearInterval(state.triviaTimerInterval);
-    document.getElementById('trivia-timer-text').textContent = "00:00";
-    state.triviaTimerInterval = setInterval(() => {
-      state.triviaTimeElapsed++;
-      const m = Math.floor(state.triviaTimeElapsed / 60).toString().padStart(2, '0');
-      const s = (state.triviaTimeElapsed % 60).toString().padStart(2, '0');
-      document.getElementById('trivia-timer-text').textContent = `${m}:${s}`;
-    }, 1000);
-    
-    renderTriviaQuestion();
-  });
-}
-
-function renderTriviaQuestion() {
-  const currentIdx = state.currentTriviaIndex;
-  const total = state.triviaQuestions.length;
-  const q = state.triviaQuestions[currentIdx];
-  
-  // Track parameters
-  document.getElementById('trivia-current-num').textContent = currentIdx + 1;
-  document.getElementById('trivia-total-num').textContent = total;
-  document.getElementById('trivia-progress-bar').style.width = `${((currentIdx + 1) / total) * 100}%`;
-  
-  document.getElementById('trivia-question-text').textContent = q.question;
-  
-  // Render options buttons
-  const optionsContainer = document.getElementById('trivia-options-list');
-  optionsContainer.innerHTML = q.options.map((opt, i) => {
-    return `
-      <button class="quiz-option-btn" data-index="${i}" onclick="selectTriviaOption(${i})">
-        <span>${opt}</span>
-        <i data-lucide="check-circle-2" class="quiz-option-icon quiz-option-icon-correct text-green"></i>
-        <i data-lucide="x-circle" class="quiz-option-icon quiz-option-icon-incorrect text-red"></i>
-      </button>
-    `;
-  }).join('');
-  
-  // Reset visual states
-  document.getElementById('trivia-feedback-panel').classList.add('hidden');
-  submitTriviaBtn.classList.remove('hidden');
-  submitTriviaBtn.disabled = true;
-  nextTriviaBtn.classList.add('hidden');
-  
-  lucide.createIcons();
-}
-
-function selectTriviaOption(idx) {
-  SoundFX.playClick();
-  const btns = document.querySelectorAll('#trivia-options-list .quiz-option-btn');
-  btns.forEach(btn => btn.classList.remove('selected'));
-  
-  const chosenBtn = document.querySelector(`#trivia-options-list .quiz-option-btn[data-index="${idx}"]`);
-  if (chosenBtn) chosenBtn.classList.add('selected');
-  
-  // Record choice and enable verification button
-  state.triviaAnswers[state.currentTriviaIndex] = idx;
-  submitTriviaBtn.disabled = false;
-}
-
-if (submitTriviaBtn) {
-  submitTriviaBtn.addEventListener('click', () => {
-    const currentIdx = state.currentTriviaIndex;
-    const q = state.triviaQuestions[currentIdx];
-    const userChoice = state.triviaAnswers[currentIdx];
-    const correctIdx = q.answerIndex;
-    
-    // Disable other choice buttons
-    const btns = document.querySelectorAll('#trivia-options-list .quiz-option-btn');
-    btns.forEach(btn => {
-      btn.disabled = true;
-      const idx = parseInt(btn.getAttribute('data-index'));
-      
-      if (idx === correctIdx) {
-        btn.classList.add('correct');
-      } else if (idx === userChoice) {
-        btn.classList.add('incorrect');
-      }
-    });
-    
-    // Evaluate correctness
-    const feedbackTitle = document.getElementById('trivia-feedback-status');
-    const feedbackText = document.getElementById('trivia-feedback-explanation');
-    
-    if (userChoice === correctIdx) {
-      SoundFX.playSuccess();
-      state.triviaScore++;
-      feedbackTitle.innerHTML = `<i data-lucide="check-circle-2" class="text-green"></i> <span>Correct!</span>`;
-    } else {
-      SoundFX.playError();
-      feedbackTitle.innerHTML = `<i data-lucide="alert-triangle" class="text-red"></i> <span>Incorrect Choice</span>`;
-    }
-    
-    feedbackText.textContent = q.explanation;
-    document.getElementById('trivia-feedback-panel').classList.remove('hidden');
-    
-    submitTriviaBtn.classList.add('hidden');
-    nextTriviaBtn.classList.remove('hidden');
-    
-    // Adjust next label for the final question
-    if (currentIdx === state.triviaQuestions.length - 1) {
-      nextTriviaBtn.innerHTML = `Complete Evaluation <i data-lucide="award"></i>`;
-    } else {
-      nextTriviaBtn.innerHTML = `Next Query <i data-lucide="chevron-right"></i>`;
-    }
-    
-    lucide.createIcons();
-  });
-}
-
-if (nextTriviaBtn) {
-  nextTriviaBtn.addEventListener('click', () => {
-    SoundFX.playClick();
-    if (state.currentTriviaIndex === state.triviaQuestions.length - 1) {
-      // Game over, evaluate scorecard
-      finishTriviaGame();
-    } else {
-      state.currentTriviaIndex++;
-      renderTriviaQuestion();
-    }
-  });
-}
-
-function finishTriviaGame() {
-  clearInterval(state.triviaTimerInterval);
-  state.triviaActive = false;
-  
-  triviaArenaPanel.classList.add('hidden');
-  triviaResultsPanel.classList.remove('hidden');
-  
-  const score = state.triviaScore;
-  const total = state.triviaQuestions.length;
-  const pct = Math.round((score / total) * 100);
-  
-  document.getElementById('trivia-score-pct').textContent = `${pct}%`;
-  document.getElementById('trivia-score-fraction').textContent = `${score} / ${total} Correct`;
-  
-  // Results circle progress (Circumference = 2 * PI * 75 = 471.2)
-  const resultsCircle = document.getElementById('trivia-score-circle');
-  const offset = 471.2 - (pct / 100) * 471.2;
-  resultsCircle.style.strokeDashoffset = offset;
-  
-  // Headline messages
-  const headline = document.getElementById('trivia-results-headline');
-  const details = document.getElementById('trivia-results-text');
-  
-  if (pct === 100) {
-    headline.textContent = "Ecological Visionary!";
-    details.textContent = `Unbelievable work. You answered ${score} out of ${total} correctly. Your understanding of carbon dynamics and climate science is elite!`;
-  } else if (pct >= 60) {
-    headline.textContent = "Green Practitioner";
-    details.textContent = `Good study skills! You got ${score} out of ${total} correct. Continue logging footprints and checking tips to learn more.`;
-  } else {
-    headline.textContent = "Sprout Level Awareness";
-    details.textContent = `You got ${score} out of ${total} correct. Climate knowledge is grown iteratively. Try reviewing recommendations or re-taking trivia topics.`;
-  }
-  
-  // Render review breakdown
-  const reviewList = document.getElementById('trivia-review-list');
-  reviewList.innerHTML = state.triviaQuestions.map((q, i) => {
-    const userChoice = state.triviaAnswers[i];
-    const correct = userChoice === q.answerIndex;
-    
-    return `
-      <div class="review-card" style="border-left: 3px solid ${correct ? 'var(--primary-mint)' : 'var(--accent-red)'}">
-        <div class="review-card-header">
-          <span>Question ${i + 1}</span>
-          <span class="${correct ? 'text-green' : 'text-red'}">${correct ? 'Correct' : 'Incorrect'}</span>
-        </div>
-        <h4>${q.question}</h4>
-        <p class="subtext" style="font-size:0.8rem;">Your choice: <strong style="color:var(--text-main);">${q.options[userChoice] || 'None'}</strong></p>
-        <p class="subtext" style="font-size:0.8rem;">Correct answer: <strong style="color:var(--primary-mint);">${q.options[q.answerIndex]}</strong></p>
-        <div class="review-explanation">${q.explanation}</div>
-      </div>
-    `;
-  }).join('');
-}
-
-// Quit and Retry triggers
-if (quitTriviaBtn) {
-  quitTriviaBtn.addEventListener('click', () => {
-    SoundFX.playError();
-    clearInterval(state.triviaTimerInterval);
-    state.triviaActive = false;
-    
-    triviaSetupPanel.classList.remove('hidden');
-    triviaArenaPanel.classList.add('hidden');
-  });
-}
-
-const triviaRetryBtn = document.getElementById('trivia-retry-btn');
-if (triviaRetryBtn) {
-  triviaRetryBtn.addEventListener('click', () => {
-    SoundFX.playClick();
-    triviaSetupPanel.classList.remove('hidden');
-    triviaResultsPanel.classList.add('hidden');
-  });
-}
-
-const triviaFinishBtn = document.getElementById('trivia-finish-btn');
-if (triviaFinishBtn) {
-  triviaFinishBtn.addEventListener('click', () => {
-    SoundFX.playClick();
-    switchTab('dashboard');
-  });
-}
-
-// --- TOAST NOTIFICATIONS ALERTS ---
+// --- TOAST NOTIFICATIONS UTILITY ---
 function showToast(icon, message, type = 'success') {
   const container = document.getElementById('toast-container');
   const toast = document.createElement('div');
@@ -1535,24 +564,24 @@ function showToast(icon, message, type = 'success') {
   }, 4000);
 }
 
+
 // --- SPA ROUTER & NAVIGATION ---
 const PAGE_TITLES = {
-  dashboard: { title: "Ecological Dashboard", subtitle: "Welcome back, Pioneer. Let's analyze your environmental metrics today." },
-  calculator: { title: "Carbon Calculator", subtitle: "Log carbon-intensive daily items to monitor energy footprint indexes." },
-  challenges: { title: "Challenges & Tips", subtitle: "Commit to active eco-challenges and view tailored sustainability suggestions." },
-  simulator: { title: "Offset Simulator", suffix: "Plant trees, install clean energy, and visualize long-term annual savings." },
-  trivia: { title: "Eco-Trivia Game", subtitle: "Challenge your climate awareness and learn facts about global warming." }
+  dashboard: { title: "Dashboard Overview", subtitle: "Welcome back. Ready to accelerate your learning?" },
+  summarizer: { title: "AI Notes Summarizer", subtitle: "Convert heavy articles and notes into clear outlines & key terms." },
+  quiz: { title: "Quiz Generator", subtitle: "Test your synthesis and solidify pathways in memory." },
+  flashcards: { title: "3D Flashcard Deck", subtitle: "Utilize active recall and the Leitner progression system." }
 };
 
 function switchTab(tabId) {
   SoundFX.playClick();
   
-  // Remove active styling flag
+  // Remove active flags
   document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
   document.querySelectorAll('.mobile-nav-item').forEach(btn => btn.classList.remove('active'));
   document.querySelectorAll('.tab-section').forEach(sec => sec.classList.remove('active'));
   
-  // Set active class
+  // Set active flags
   const sidebarBtn = document.querySelector(`.sidebar-nav [data-tab="${tabId}"]`);
   if (sidebarBtn) sidebarBtn.classList.add('active');
   
@@ -1562,31 +591,22 @@ function switchTab(tabId) {
   const targetSection = document.getElementById(`tab-${tabId}`);
   if (targetSection) targetSection.classList.add('active');
   
-  // Update header titles
+  // Update titles
   const textInfo = PAGE_TITLES[tabId];
   if (textInfo) {
     document.getElementById('page-title').textContent = textInfo.title;
-    document.getElementById('page-subtitle').textContent = textInfo.subtitle || textInfo.suffix;
+    document.getElementById('page-subtitle').textContent = textInfo.subtitle;
   }
   
-  // Sub-triggers based on tab switching
-  if (tabId === 'dashboard') {
-    updateDashboardMetrics();
-  } else if (tabId === 'calculator') {
-    calculateRealTimeEstimate();
-  } else if (tabId === 'challenges') {
-    updateActionTips();
-    renderChallengesList();
-  } else if (tabId === 'simulator') {
-    updateOffsetSimulator();
-  } else if (tabId === 'trivia') {
-    triviaSetupPanel.classList.remove('hidden');
-    triviaArenaPanel.classList.add('hidden');
-    triviaResultsPanel.classList.add('hidden');
+  // Extra page-specific layouts adjustment
+  if (tabId === 'quiz') {
+    syncQuizSourceUI();
+  } else if (tabId === 'flashcards') {
+    syncFlashcardsUI();
   }
 }
 
-// Bind routing triggers to nav buttons
+// Bind routing listeners
 document.querySelectorAll('.nav-item, .mobile-nav-item').forEach(elem => {
   elem.addEventListener('click', (e) => {
     const tabId = elem.getAttribute('data-tab');
@@ -1594,7 +614,8 @@ document.querySelectorAll('.nav-item, .mobile-nav-item').forEach(elem => {
   });
 });
 
-// Audio muting setting controls
+
+// --- SOUND EFFECTS SETTINGS TRIGGER ---
 document.getElementById('toggle-audio-btn').addEventListener('click', () => {
   state.audioEnabled = !state.audioEnabled;
   const audioBtn = document.getElementById('toggle-audio-btn');
@@ -1603,38 +624,980 @@ document.getElementById('toggle-audio-btn').addEventListener('click', () => {
   if (state.audioEnabled) {
     audioBtn.classList.remove('muted');
     audioIcon.setAttribute('data-lucide', 'volume-2');
-    showToast('volume-2', 'Audio synthesis feedback enabled.', 'info');
+    showToast('volume-2', 'Sound effects enabled.', 'info');
     SoundFX.playClick();
   } else {
     audioBtn.classList.add('muted');
     audioIcon.setAttribute('data-lucide', 'volume-x');
-    showToast('volume-x', 'Audio synthesis feedback muted.', 'info');
+    showToast('volume-x', 'Sound effects muted.', 'info');
   }
   lucide.createIcons();
   saveStateToStorage();
 });
 
-// Clear dashboard activity log database history
-document.getElementById('clear-history-btn').addEventListener('click', () => {
-  SoundFX.playError();
-  state.activityLog = [];
-  showToast('trash', 'Activity history logs cleared.', 'danger');
-  saveStateToStorage();
-  updateDashboardMetrics();
-  updateActionTips();
+
+// --- DASHBOARD FOCUS TIMER LOGIC ---
+const startSessionBtn = document.getElementById('start-session-btn');
+const pauseSessionBtn = document.getElementById('pause-session-btn');
+const stopSessionBtn = document.getElementById('stop-session-btn');
+const activeTimerDisplay = document.getElementById('active-timer-display');
+
+function formatSeconds(seconds) {
+  const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+  const s = (seconds % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+startSessionBtn.addEventListener('click', () => {
+  SoundFX.playClick();
+  state.sessionIsRunning = true;
+  
+  startSessionBtn.classList.add('hidden');
+  pauseSessionBtn.classList.remove('hidden');
+  stopSessionBtn.classList.remove('hidden');
+  activeTimerDisplay.classList.remove('hidden');
+  
+  showToast('timer', 'Study timer session started. Focus hard!', 'info');
+  
+  state.sessionTimerInterval = setInterval(() => {
+    state.sessionSecondsElapsed++;
+    activeTimerDisplay.textContent = formatSeconds(state.sessionSecondsElapsed);
+  }, 1000);
 });
 
-// Initial startup execution
-window.addEventListener('DOMContentLoaded', () => {
-  loadStateFromStorage();
-  updateDashboardMetrics();
+pauseSessionBtn.addEventListener('click', () => {
+  SoundFX.playClick();
+  state.sessionIsRunning = false;
+  clearInterval(state.sessionTimerInterval);
   
-  // Set default volume buttons visual class
-  const audioBtn = document.getElementById('toggle-audio-btn');
-  const audioIcon = document.getElementById('audio-icon');
-  if (!state.audioEnabled) {
-    audioBtn.classList.add('muted');
-    audioIcon.setAttribute('data-lucide', 'volume-x');
-    lucide.createIcons();
+  startSessionBtn.classList.remove('hidden');
+  startSessionBtn.innerHTML = `<i data-lucide="play"></i> Resume Session`;
+  pauseSessionBtn.classList.add('hidden');
+  
+  showToast('pause', 'Session paused.', 'info');
+  lucide.createIcons();
+});
+
+stopSessionBtn.addEventListener('click', () => {
+  SoundFX.playSuccess();
+  state.sessionIsRunning = false;
+  clearInterval(state.sessionTimerInterval);
+  
+  const elapsedMins = state.sessionSecondsElapsed / 60;
+  if (elapsedMins >= 0.05) { // Minimum 3 seconds to log
+    state.studyMinutes += elapsedMins;
+    logActivity('timer', `Completed study session: studied for ${Math.round(elapsedMins * 10) / 10}m`);
+    showToast('award', `Great work! Added ${Math.round(elapsedMins * 10) / 10}m to focus time.`, 'success');
+  } else {
+    showToast('info', 'Session ended (too short to log).', 'info');
   }
+  
+  state.sessionSecondsElapsed = 0;
+  
+  startSessionBtn.classList.remove('hidden');
+  startSessionBtn.innerHTML = `<i data-lucide="play"></i> Start Session`;
+  pauseSessionBtn.classList.add('hidden');
+  stopSessionBtn.classList.add('hidden');
+  activeTimerDisplay.classList.add('hidden');
+  activeTimerDisplay.textContent = "00:00";
+  
+  lucide.createIcons();
+  updateDashboardStats();
+  saveStateToStorage();
+});
+
+// Edit Goal Modal toggles
+const goalModal = document.getElementById('goal-modal');
+document.getElementById('edit-goal-btn').addEventListener('click', () => {
+  SoundFX.playClick();
+  document.getElementById('goal-input-field').value = state.dailyTargetMinutes;
+  goalModal.classList.remove('hidden');
+});
+
+function closeGoalModal() {
+  SoundFX.playClick();
+  goalModal.classList.add('hidden');
+}
+
+document.getElementById('close-goal-modal-btn').addEventListener('click', closeGoalModal);
+document.getElementById('cancel-goal-btn').addEventListener('click', closeGoalModal);
+
+document.getElementById('save-goal-btn').addEventListener('click', () => {
+  const newVal = parseInt(document.getElementById('goal-input-field').value);
+  if (newVal >= 5 && newVal <= 480) {
+    state.dailyTargetMinutes = newVal;
+    showToast('settings', `Focus target updated to ${newVal} minutes!`, 'success');
+    closeGoalModal();
+    updateDashboardStats();
+    saveStateToStorage();
+  } else {
+    showToast('alert-triangle', 'Please choose a target between 5 and 480 minutes.', 'warning');
+  }
+});
+
+
+// --- NOTES SUMMARIZER CORE LOGIC ---
+const summarizerInput = document.getElementById('summarizer-input');
+const charCounter = document.getElementById('char-counter');
+const summarizeBtn = document.getElementById('summarize-btn');
+const loaderBox = document.getElementById('summarizer-loader');
+const emptyBox = document.getElementById('summarizer-empty');
+const resultsBox = document.getElementById('summarizer-results');
+
+summarizerInput.addEventListener('input', () => {
+  const current = summarizerInput.value.length;
+  charCounter.textContent = `${current.toLocaleString()} / 10,000 characters`;
+});
+
+function clearSummarizerInput() {
+  SoundFX.playClick();
+  summarizerInput.value = '';
+  charCounter.textContent = '0 / 10,000 characters';
+  summarizerInput.focus();
+}
+
+function loadPresetText(key) {
+  SoundFX.playClick();
+  const preset = TEXT_PRESETS[key];
+  if (preset) {
+    summarizerInput.value = preset.text;
+    charCounter.textContent = `${preset.text.length.toLocaleString()} / 10,000 characters`;
+    showToast('file-text', `Loaded "${preset.title}" preset.`, 'info');
+  }
+}
+
+// Dynamic parser algorithm for user's custom notes
+function parseCustomNotesText(rawText, tone, length) {
+  // Simple heuristic text processor for custom inputs
+  const cleaned = rawText.trim().replace(/\s+/g, ' ');
+  const sentences = cleaned.split(/(?<=[.!?])\s+/);
+  
+  let abstract = "";
+  let bullets = [];
+  let glossary = [];
+  
+  if (sentences.length <= 2) {
+    abstract = cleaned;
+    bullets = [cleaned];
+    glossary = [{ term: "Concept Focus", definition: "Defined concept based on short notes summary." }];
+  } else {
+    // Executive summary from first two sentences
+    abstract = sentences[0] + " " + (sentences[1] || "");
+    
+    // Scan for key points (sentences with connectors or longer lengths)
+    const keywords = ["important", "because", "implies", "key", "processes", "defined", "therefore", "essential", "crucial"];
+    sentences.forEach((sent) => {
+      if (bullets.length < 5) {
+        const containsKeyword = keywords.some(k => sent.toLowerCase().includes(k));
+        if (containsKeyword && sent.length > 20 && sent.length < 180) {
+          bullets.push(sent);
+        }
+      }
+    });
+    
+    // Fill bullets if too empty
+    let sIdx = 2;
+    while (bullets.length < 4 && sIdx < sentences.length) {
+      if (sentences[sIdx].length > 25 && !bullets.includes(sentences[sIdx])) {
+        bullets.push(sentences[sIdx]);
+      }
+      sIdx++;
+    }
+    
+    // Scan for glossary terms (capitalized words before "is/are/refers to" or colon)
+    const definitionRegex = /\b([A-Z][a-zA-Z\s]{2,25})\b\s+(?:is|are|refers to|denotes)\s+([^.]+)/;
+    sentences.forEach(sent => {
+      const match = sent.match(definitionRegex);
+      if (match && glossary.length < 5) {
+        const term = match[1].trim();
+        const definition = match[2].trim() + ".";
+        // Check duplication
+        if (!glossary.some(item => item.term.toLowerCase() === term.toLowerCase())) {
+          glossary.push({ term, definition });
+        }
+      }
+    });
+    
+    // Glossary fallbacks: pick notable nouns
+    if (glossary.length < 3) {
+      const fallbackPairs = [
+        { term: "Critical Target", definition: "A principal key element defined within your study notes." },
+        { term: "System Process", definition: "A sequence of actions parsed directly from text context." },
+        { term: "Core Variable", definition: "An essential component influencing behavior in this topic." }
+      ];
+      fallbackPairs.forEach(pair => {
+        if (glossary.length < 4) glossary.push(pair);
+      });
+    }
+  }
+
+  // Set tone adjustments to outputs
+  if (tone === 'simple') {
+    abstract = "Simply put: " + abstract.replace(/biochemical|organelles|compartment|stimulation|depolarized|methodology|dimensionality/gi, "important structure");
+  } else if (tone === 'creative') {
+    abstract = "🧠 Think of this topic like an intricate, automated machine. " + abstract;
+  }
+  
+  // Format outputs into proper preset structures
+  // Since we also need mock quizzes and flashcards for custom notes, synthesize them dynamically!
+  const mockQuiz = glossary.map((g, idx) => {
+    const distractors = glossary.filter((_, i) => i !== idx).map(item => item.term);
+    while (distractors.length < 3) {
+      distractors.push(`Secondary Parameter ${distractors.length + 1}`);
+    }
+    const options = [g.term, distractors[0], distractors[1], distractors[2]];
+    
+    // Shuffle options
+    const shuffled = [...options];
+    let ansIdx = 0;
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    ansIdx = shuffled.indexOf(g.term);
+
+    return {
+      question: `Which terms relates directly to the definition: "${g.definition}"?`,
+      options: shuffled,
+      answerIndex: ansIdx,
+      explanation: `"${g.term}" is defined precisely as: ${g.definition}`
+    };
+  });
+
+  const mockCards = glossary.map(g => ({
+    front: `What is the definition of "${g.term}"?`,
+    back: g.definition
+  }));
+
+  return {
+    abstract,
+    bullets,
+    glossary,
+    quiz: mockQuiz,
+    flashcards: mockCards
+  };
+}
+
+summarizeBtn.addEventListener('click', () => {
+  const text = summarizerInput.value.trim();
+  if (!text) {
+    showToast('alert-triangle', 'Please paste study notes or load a preset first.', 'warning');
+    SoundFX.playError();
+    return;
+  }
+  
+  SoundFX.playClick();
+  
+  // Hide panels and start loader
+  emptyBox.classList.add('hidden');
+  resultsBox.classList.add('hidden');
+  loaderBox.classList.remove('hidden');
+  
+  const tone = document.getElementById('summarizer-tone').value;
+  const length = document.getElementById('summarizer-length').value;
+  
+  // Loading Simulation Phases
+  const phases = [
+    { pct: 25, title: "Parsing input syntax...", detail: "Dividing clauses and tokenizing keywords" },
+    { pct: 55, title: "Evaluating semantic weights...", detail: "Detecting connections and definition tags" },
+    { pct: 80, title: "Structuring outline guide...", detail: "Drafting abstract summary & key takeaways" },
+    { pct: 100, title: "Compiling glossary matrices...", detail: "Optimizing flashcard terms & generating quiz questions" }
+  ];
+  
+  let currentPhaseIdx = 0;
+  
+  const timer = setInterval(() => {
+    if (currentPhaseIdx < phases.length) {
+      const phase = phases[currentPhaseIdx];
+      document.getElementById('loader-phase').textContent = phase.title;
+      document.getElementById('loader-details').textContent = phase.detail;
+      document.getElementById('loader-progress-bar').style.width = `${phase.pct}%`;
+      currentPhaseIdx++;
+    } else {
+      clearInterval(timer);
+      
+      // Look up preset or dynamically parse
+      let processed = null;
+      let matchedKey = null;
+      
+      // Check if matches preset
+      for (const [key, preset] of Object.entries(TEXT_PRESETS)) {
+        if (text.substring(0, 100) === preset.text.substring(0, 100)) {
+          processed = preset.summary;
+          matchedKey = key;
+          break;
+        }
+      }
+      
+      if (!processed) {
+        processed = parseCustomNotesText(text, tone, length);
+      }
+      
+      // Store in active summary state
+      state.activeSummary = {
+        text: text,
+        abstract: processed.abstract,
+        bullets: processed.bullets,
+        glossary: processed.glossary,
+        quiz: processed.quiz,
+        flashcards: processed.flashcards
+      };
+      
+      // Render output views
+      document.getElementById('summary-abstract-output').textContent = processed.abstract;
+      document.getElementById('summary-bullets-output').innerHTML = processed.bullets.map(b => `<li>${b}</li>`).join('');
+      document.getElementById('summary-glossary-output').innerHTML = processed.glossary.map(g => `
+        <div class="glossary-item">
+          <div class="glossary-term">${g.term}</div>
+          <div class="glossary-definition">${g.definition}</div>
+        </div>
+      `).join('');
+      
+      // Hide loader, show results
+      loaderBox.classList.add('hidden');
+      resultsBox.classList.remove('hidden');
+      
+      state.notesCount++;
+      logActivity('summarize', `Summarized study guide: "${text.substring(0, 30)}..."`);
+      showToast('sparkles', 'AI study summary generated successfully!', 'success');
+      SoundFX.playSuccess();
+      updateDashboardStats();
+      saveStateToStorage();
+    }
+  }, 600);
+});
+
+// Copy / Export action buttons
+document.getElementById('copy-summary-btn').addEventListener('click', () => {
+  if (!state.activeSummary) return;
+  
+  const textToCopy = `SUMMARY GUIDE
+${state.activeSummary.abstract}
+
+KEY TAKEAWAYS
+${state.activeSummary.bullets.map(b => `- ${b}`).join('\n')}
+
+GLOSSARY DEFINITIONS
+${state.activeSummary.glossary.map(g => `${g.term}: ${g.definition}`).join('\n')}`;
+
+  navigator.clipboard.writeText(textToCopy).then(() => {
+    SoundFX.playClick();
+    showToast('check', 'Copied study summary to clipboard!', 'success');
+  });
+});
+
+document.getElementById('download-summary-btn').addEventListener('click', () => {
+  if (!state.activeSummary) return;
+  
+  const textContent = `EDUGENIE AI STUDY WORKSPACE SUMMARY
+Generated: ${new Date().toLocaleString()}
+
+SUMMARY ABSTRACT
+===========================================
+${state.activeSummary.abstract}
+
+KEY TAKEAWAYS
+===========================================
+${state.activeSummary.bullets.map(b => `- ${b}`).join('\n')}
+
+GLOSSARY TERMS
+===========================================
+${state.activeSummary.glossary.map(g => `${g.term}: ${g.definition}`).join('\n')}`;
+
+  const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `edugenie_summary_${Date.now()}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  
+  SoundFX.playClick();
+  showToast('download', 'Exported study guide text file.', 'success');
+});
+
+// Auto-route conversions
+document.getElementById('convert-to-quiz-btn').addEventListener('click', () => {
+  switchTab('quiz');
+  document.getElementById('source-active-notes-btn').click();
+});
+
+document.getElementById('convert-to-cards-btn').addEventListener('click', () => {
+  switchTab('flashcards');
+  document.getElementById('cards-generate-notes-btn').click();
+});
+
+
+// --- QUIZ GENERATOR CORE LOGIC ---
+const quizSetupPanel = document.getElementById('quiz-setup-panel');
+const quizArenaPanel = document.getElementById('quiz-arena-panel');
+const quizResultsPanel = document.getElementById('quiz-results-panel');
+
+const sourceActiveNotesBtn = document.getElementById('source-active-notes-btn');
+const sourcePresetBtn = document.getElementById('source-preset-btn');
+const quizPresetsDropdownGroup = document.getElementById('quiz-presets-dropdown-group');
+
+let quizSource = "active-notes";
+
+function syncQuizSourceUI() {
+  const activeStatus = document.getElementById('active-notes-status-text');
+  const activeWarning = document.getElementById('active-notes-warning-text');
+  const startBtn = document.getElementById('generate-quiz-btn');
+  
+  if (state.activeSummary) {
+    activeStatus.classList.remove('hidden');
+    activeWarning.classList.add('hidden');
+    startBtn.disabled = false;
+  } else {
+    activeStatus.classList.add('hidden');
+    activeWarning.classList.remove('hidden');
+    if (quizSource === 'active-notes') {
+      startBtn.disabled = true;
+    } else {
+      startBtn.disabled = false;
+    }
+  }
+}
+
+sourceActiveNotesBtn.addEventListener('click', () => {
+  SoundFX.playClick();
+  quizSource = "active-notes";
+  sourceActiveNotesBtn.classList.add('active');
+  sourcePresetBtn.classList.remove('active');
+  quizPresetsDropdownGroup.classList.add('hidden');
+  syncQuizSourceUI();
+});
+
+sourcePresetBtn.addEventListener('click', () => {
+  SoundFX.playClick();
+  quizSource = "presets";
+  sourcePresetBtn.classList.add('active');
+  sourceActiveNotesBtn.classList.remove('active');
+  quizPresetsDropdownGroup.classList.remove('hidden');
+  document.getElementById('generate-quiz-btn').disabled = false;
+  syncQuizSourceUI();
+});
+
+// STARTING THE QUIZ
+document.getElementById('generate-quiz-btn').addEventListener('click', () => {
+  SoundFX.playClick();
+  
+  const size = parseInt(document.getElementById('quiz-size').value);
+  const difficulty = document.getElementById('quiz-difficulty').value;
+  
+  let qBank = [];
+  
+  if (quizSource === 'active-notes') {
+    if (!state.activeSummary || !state.activeSummary.quiz) {
+      showToast('alert-triangle', 'No active notes found to compile questions.', 'warning');
+      return;
+    }
+    qBank = [...state.activeSummary.quiz];
+  } else {
+    // Load presets question list
+    const key = document.getElementById('quiz-preset-topic').value;
+    qBank = [...TEXT_PRESETS[key].summary.quiz];
+  }
+  
+  // Truncate based on size limits
+  state.activeQuiz = qBank.slice(0, size);
+  
+  // Reset game states
+  state.currentQuizIndex = 0;
+  state.quizAnswers = Array(state.activeQuiz.length).fill(null);
+  state.quizScore = 0;
+  state.quizTimeElapsed = 0;
+  
+  // Swap Panels
+  quizSetupPanel.classList.add('hidden');
+  quizArenaPanel.classList.remove('hidden');
+  
+  // Start Timer
+  document.getElementById('quiz-timer-text').textContent = "00:00";
+  state.quizTimerInterval = setInterval(() => {
+    state.quizTimeElapsed++;
+    document.getElementById('quiz-timer-text').textContent = formatSeconds(state.quizTimeElapsed);
+  }, 1000);
+  
+  loadQuizQuestion(0);
+});
+
+function loadQuizQuestion(index) {
+  const qData = state.activeQuiz[index];
+  
+  // Tracker progress bar (Current / Total)
+  document.getElementById('current-question-num').textContent = index + 1;
+  document.getElementById('total-questions-num').textContent = state.activeQuiz.length;
+  
+  const pct = ((index + 1) / state.activeQuiz.length) * 100;
+  document.getElementById('quiz-progress-bar').style.width = `${pct}%`;
+  
+  // Text details
+  document.getElementById('quiz-question-text').textContent = qData.question;
+  
+  // Render options list
+  const container = document.getElementById('quiz-options-list');
+  container.innerHTML = qData.options.map((opt, oIdx) => {
+    const marker = String.fromCharCode(65 + oIdx); // A, B, C, D
+    return `
+      <button class="quiz-option-item" onclick="selectQuizOption(${oIdx})">
+        <span class="option-marker">${marker}</span>
+        <span class="option-text">${opt}</span>
+      </button>
+    `;
+  }).join('');
+  
+  // Reset button state
+  document.getElementById('submit-answer-btn').classList.remove('hidden');
+  document.getElementById('submit-answer-btn').disabled = true;
+  document.getElementById('next-question-btn').classList.add('hidden');
+  document.getElementById('quiz-feedback-panel').classList.add('hidden');
+}
+
+function selectQuizOption(optionIdx) {
+  if (state.quizAnswers[state.currentQuizIndex] !== null) return; // Answer already submitted
+  
+  SoundFX.playClick();
+  state.quizAnswers[state.currentQuizIndex] = optionIdx;
+  
+  const items = document.querySelectorAll('#quiz-options-list .quiz-option-item');
+  items.forEach((item, idx) => {
+    if (idx === optionIdx) {
+      item.classList.add('selected');
+    } else {
+      item.classList.remove('selected');
+    }
+  });
+  
+  document.getElementById('submit-answer-btn').disabled = false;
+}
+
+// Global scope window triggers for inline html click options
+window.selectQuizOption = selectQuizOption;
+
+// SUBMIT ANSWER CHECK
+document.getElementById('submit-answer-btn').addEventListener('click', () => {
+  const qIndex = state.currentQuizIndex;
+  const qData = state.activeQuiz[qIndex];
+  const userChoice = state.quizAnswers[qIndex];
+  
+  if (userChoice === null) return;
+  
+  const isCorrect = userChoice === qData.answerIndex;
+  
+  const optionItems = document.querySelectorAll('#quiz-options-list .quiz-option-item');
+  
+  // Mark answer cards
+  optionItems.forEach((item, idx) => {
+    item.classList.remove('selected');
+    if (idx === qData.answerIndex) {
+      item.classList.add('correct');
+    } else if (idx === userChoice) {
+      item.classList.add('incorrect');
+    }
+  });
+  
+  // Feedback details
+  const fbPanel = document.getElementById('quiz-feedback-panel');
+  const fbTitle = document.getElementById('feedback-status-title');
+  const fbExplanation = document.getElementById('feedback-explanation-text');
+  
+  if (isCorrect) {
+    state.quizScore++;
+    fbTitle.innerHTML = `<i data-lucide="check-circle-2" class="text-green"></i> <span>Correct Answer!</span>`;
+    SoundFX.playSuccess();
+    showToast('check', 'Correct!', 'success');
+  } else {
+    fbTitle.innerHTML = `<i data-lucide="x-circle" class="text-red"></i> <span>Incorrect Answer</span>`;
+    SoundFX.playError();
+    showToast('x', 'Incorrect answer selection.', 'warning');
+  }
+  fbExplanation.textContent = qData.explanation;
+  fbPanel.classList.remove('hidden');
+  
+  // Adjust footer buttons
+  document.getElementById('submit-answer-btn').classList.add('hidden');
+  document.getElementById('next-question-btn').classList.remove('hidden');
+  
+  if (qIndex === state.activeQuiz.length - 1) {
+    document.getElementById('next-question-btn').innerHTML = `View Evaluation <i data-lucide="award"></i>`;
+  } else {
+    document.getElementById('next-question-btn').innerHTML = `Next Question <i data-lucide="chevron-right"></i>`;
+  }
+  lucide.createIcons();
+});
+
+// NEXT QUESTION CLICK
+document.getElementById('next-question-btn').addEventListener('click', () => {
+  SoundFX.playClick();
+  
+  if (state.currentQuizIndex < state.activeQuiz.length - 1) {
+    state.currentQuizIndex++;
+    loadQuizQuestion(state.currentQuizIndex);
+  } else {
+    // End Quiz, show scorecard
+    clearInterval(state.quizTimerInterval);
+    renderQuizScorecard();
+  }
+});
+
+// QUIT QUIZ TERMINATION
+document.getElementById('quit-quiz-btn').addEventListener('click', () => {
+  SoundFX.playClick();
+  if (confirm("Are you sure you want to quit the current practice test? Your scores will not be logged.")) {
+    clearInterval(state.quizTimerInterval);
+    quizArenaPanel.classList.add('hidden');
+    quizSetupPanel.classList.remove('hidden');
+  }
+});
+
+// SCORECARD RENDERING
+function renderQuizScorecard() {
+  quizArenaPanel.classList.add('hidden');
+  quizResultsPanel.classList.remove('hidden');
+  
+  const score = state.quizScore;
+  const total = state.activeQuiz.length;
+  const pct = Math.round((score / total) * 100);
+  
+  // Circle graphic (Circumference = 2 * PI * 75 = 471.2)
+  const resultsCircle = document.getElementById('results-score-circle');
+  const offset = 471.2 - (pct / 100) * 471.2;
+  resultsCircle.style.strokeDashoffset = offset;
+  
+  document.getElementById('results-score-pct').textContent = `${pct}%`;
+  document.getElementById('results-score-fraction').textContent = `${score} / ${total} Correct`;
+  
+  // Headline feedback
+  const headline = document.getElementById('results-headline');
+  const summaryText = document.getElementById('results-summary-text');
+  
+  if (pct === 100) {
+    headline.textContent = "🏆 Perfect Score!";
+    summaryText.textContent = `Brilliant! You mastered all ${total} concepts without error. Excellent cognitive pathing.`;
+  } else if (pct >= 80) {
+    headline.textContent = "⭐ Excellent Performance!";
+    summaryText.textContent = `Outstanding work. You answered ${score} out of ${total} correctly. You're ready to teach this material!`;
+  } else if (pct >= 50) {
+    headline.textContent = "📚 Nice Effort!";
+    summaryText.textContent = `Solid work. You scored ${score} out of ${total}. Review incorrect terms in flashcards to master the topic fully.`;
+  } else {
+    headline.textContent = "🔍 Needs Revision";
+    summaryText.textContent = `You got ${score} of ${total} correct. Take active summaries of your notes again to rebuild memory blocks.`;
+  }
+  
+  // Render questions review breakdown list
+  const reviewList = document.getElementById('results-review-list');
+  reviewList.innerHTML = state.activeQuiz.map((q, idx) => {
+    const userChoice = state.quizAnswers[idx];
+    const isCorrect = userChoice === q.answerIndex;
+    const badgeClass = isCorrect ? 'success' : 'danger';
+    const badgeText = isCorrect ? 'Correct' : 'Incorrect';
+    
+    return `
+      <div class="review-question-card">
+        <div class="review-card-header">
+          <h4>Q${idx + 1}: ${q.question}</h4>
+          <span class="badge-outline ${badgeClass}">${badgeText}</span>
+        </div>
+        <div class="review-answers-box">
+          <div class="review-ans-item"><strong>Your Answer:</strong> ${userChoice !== null ? q.options[userChoice] : "None"}</div>
+          <div class="review-ans-item"><strong>Correct Answer:</strong> ${q.options[q.answerIndex]}</div>
+          <div class="review-ans-item" style="color:var(--text-muted); font-size:0.75rem; margin-top:4px;">
+            <i>${q.explanation}</i>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  // Stats additions
+  state.quizzesCount++;
+  state.studyMinutes += state.quizTimeElapsed / 60; // Add quiz study time
+  logActivity('quiz', `Completed practice test: scored ${pct}% (${score}/${total})`);
+  updateDashboardStats();
+  saveStateToStorage();
+}
+
+// Results Action events
+document.getElementById('results-retry-btn').addEventListener('click', () => {
+  SoundFX.playClick();
+  quizResultsPanel.classList.add('hidden');
+  quizSetupPanel.classList.remove('hidden');
+  document.getElementById('generate-quiz-btn').click();
+});
+
+document.getElementById('results-flashcard-link-btn').addEventListener('click', () => {
+  SoundFX.playClick();
+  quizResultsPanel.classList.add('hidden');
+  switchTab('flashcards');
+});
+
+document.getElementById('results-dashboard-btn').addEventListener('click', () => {
+  SoundFX.playClick();
+  quizResultsPanel.classList.add('hidden');
+  quizSetupPanel.classList.remove('hidden');
+  switchTab('dashboard');
+});
+
+
+// --- FLASHCARDS CORE LOGIC ---
+const flashcardEmptyView = document.getElementById('flashcard-empty-view');
+const flashcardStudyView = document.getElementById('flashcard-study-view');
+const flashcardElement = document.getElementById('active-flashcard-element');
+
+function syncFlashcardsUI() {
+  const warn = document.getElementById('cards-notes-warning');
+  const genBtn = document.getElementById('cards-generate-notes-btn');
+  
+  if (state.activeSummary) {
+    warn.classList.add('hidden');
+    genBtn.disabled = false;
+  } else {
+    warn.classList.remove('hidden');
+    genBtn.disabled = true;
+  }
+  
+  if (state.flashcardDeck.length === 0) {
+    flashcardEmptyView.classList.remove('hidden');
+    flashcardStudyView.classList.add('hidden');
+  } else {
+    flashcardEmptyView.classList.add('hidden');
+    flashcardStudyView.classList.remove('hidden');
+    loadActiveFlashcard(state.currentCardIndex);
+  }
+}
+
+// Rotate Card interaction
+document.getElementById('flashcard-scene-container').addEventListener('click', () => {
+  SoundFX.playFlip();
+  flashcardElement.classList.toggle('flipped');
+});
+
+function loadActiveFlashcard(index) {
+  if (state.flashcardDeck.length === 0) return;
+  if (index >= state.flashcardDeck.length) {
+    index = 0;
+    state.currentCardIndex = 0;
+  }
+  
+  // Unflip first
+  flashcardElement.classList.remove('flipped');
+  
+  const card = state.flashcardDeck[index];
+  
+  // Front details
+  document.getElementById('card-index-indicator').textContent = `Card ${index + 1} of ${state.flashcardDeck.length}`;
+  document.getElementById('card-front-text').textContent = card.front;
+  
+  // Back details
+  document.getElementById('card-index-indicator-back').textContent = `Card ${index + 1} of ${state.flashcardDeck.length}`;
+  document.getElementById('card-back-text').textContent = card.back;
+  
+  // Navigation counter
+  document.getElementById('carousel-indicator-text').textContent = `${index + 1} / ${state.flashcardDeck.length} Cards`;
+  
+  // Evaluate style updates based on mastered state
+  const practiceBtn = document.getElementById('btn-needs-practice');
+  const gotItBtn = document.getElementById('btn-got-it');
+  
+  if (card.mastered) {
+    gotItBtn.style.borderColor = 'var(--success)';
+    gotItBtn.style.background = 'rgba(16, 185, 129, 0.1)';
+    practiceBtn.style.borderColor = '';
+    practiceBtn.style.background = '';
+  } else {
+    practiceBtn.style.borderColor = '';
+    practiceBtn.style.background = '';
+    gotItBtn.style.borderColor = '';
+    gotItBtn.style.background = '';
+  }
+}
+
+// Navigation arrows
+document.getElementById('card-prev-btn').addEventListener('click', (e) => {
+  e.stopPropagation(); // Stop flipping trigger
+  SoundFX.playClick();
+  if (state.flashcardDeck.length === 0) return;
+  
+  state.currentCardIndex--;
+  if (state.currentCardIndex < 0) {
+    state.currentCardIndex = state.flashcardDeck.length - 1;
+  }
+  loadActiveFlashcard(state.currentCardIndex);
+});
+
+document.getElementById('card-next-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  SoundFX.playClick();
+  if (state.flashcardDeck.length === 0) return;
+  
+  state.currentCardIndex++;
+  if (state.currentCardIndex >= state.flashcardDeck.length) {
+    state.currentCardIndex = 0;
+  }
+  loadActiveFlashcard(state.currentCardIndex);
+});
+
+// Review Evaluation triggers (Got it / Needs practice)
+document.getElementById('btn-got-it').addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (state.flashcardDeck.length === 0) return;
+  
+  SoundFX.playSuccess();
+  const card = state.flashcardDeck[state.currentCardIndex];
+  
+  if (!card.mastered) {
+    card.mastered = true;
+    state.cardsMasteredCount++;
+    logActivity('card-mastery', `Mastered flashcard: "${card.front.substring(0, 20)}..."`);
+    showToast('check-circle', 'Card marked as mastered! Added to knowledge base.', 'success');
+  } else {
+    showToast('check-circle', 'Already mastered!', 'info');
+  }
+  
+  // Transition forward
+  setTimeout(() => {
+    document.getElementById('card-next-btn').click();
+    updateDashboardStats();
+    saveStateToStorage();
+  }, 300);
+});
+
+document.getElementById('btn-needs-practice').addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (state.flashcardDeck.length === 0) return;
+  
+  SoundFX.playClick();
+  const card = state.flashcardDeck[state.currentCardIndex];
+  
+  if (card.mastered) {
+    card.mastered = false;
+    state.cardsMasteredCount = Math.max(0, state.cardsMasteredCount - 1);
+    logActivity('card', `Re-evaluating flashcard: "${card.front.substring(0, 20)}..."`);
+    showToast('rotate-cw', 'Card returned to active study pile.', 'info');
+  } else {
+    showToast('help-circle', 'Keep practicing! Reviewing helps consolidate.', 'info');
+  }
+  
+  setTimeout(() => {
+    document.getElementById('card-next-btn').click();
+    updateDashboardStats();
+    saveStateToStorage();
+  }, 300);
+});
+
+// Extraction from active summarizer outline
+document.getElementById('cards-generate-notes-btn').addEventListener('click', () => {
+  if (!state.activeSummary) return;
+  
+  SoundFX.playSuccess();
+  const cards = state.activeSummary.flashcards.map((c, idx) => ({
+    id: `fc_${Date.now()}_${idx}`,
+    front: c.front,
+    back: c.back,
+    mastered: false
+  }));
+  
+  state.flashcardDeck = [...cards];
+  state.currentCardIndex = 0;
+  
+  logActivity('card', `Generated deck with ${cards.length} cards from study summary.`);
+  showToast('layers', `Synthesized ${cards.length} flashcards from notes!`, 'success');
+  
+  syncFlashcardsUI();
+  updateDashboardStats();
+  saveStateToStorage();
+});
+
+// Manual flashcard inputs add
+document.getElementById('manual-card-add-btn').addEventListener('click', () => {
+  const frontInput = document.getElementById('manual-card-front');
+  const backInput = document.getElementById('manual-card-back');
+  
+  const frontText = frontInput.value.trim();
+  const backText = backInput.value.trim();
+  
+  if (!frontText || !backText) {
+    SoundFX.playError();
+    showToast('alert-triangle', 'Please fill in both sides of the flashcard.', 'warning');
+    return;
+  }
+  
+  SoundFX.playSuccess();
+  const newCard = {
+    id: `fc_${Date.now()}`,
+    front: frontText,
+    back: backText,
+    mastered: false
+  };
+  
+  state.flashcardDeck.push(newCard);
+  
+  frontInput.value = '';
+  backInput.value = '';
+  
+  logActivity('card', `Manually added card: "${frontText.substring(0, 20)}..."`);
+  showToast('plus', 'Custom flashcard added to deck!', 'success');
+  
+  syncFlashcardsUI();
+  updateDashboardStats();
+  saveStateToStorage();
+});
+
+// Load sample biology card decks
+document.getElementById('load-sample-cards-btn').addEventListener('click', () => {
+  SoundFX.playSuccess();
+  const samples = TEXT_PRESETS.photosynthesis.summary.flashcards.map((c, idx) => ({
+    id: `fc_sample_${Date.now()}_${idx}`,
+    front: c.front,
+    back: c.back,
+    mastered: false
+  }));
+  
+  state.flashcardDeck = samples;
+  state.currentCardIndex = 0;
+  
+  showToast('layers', 'Loaded biology sample deck.', 'info');
+  syncFlashcardsUI();
+  updateDashboardStats();
+  saveStateToStorage();
+});
+
+// Clear Deck
+document.getElementById('clear-deck-btn').addEventListener('click', () => {
+  SoundFX.playClick();
+  if (confirm("Are you sure you want to empty the active flashcard deck? All custom cards will be lost.")) {
+    state.flashcardDeck = [];
+    state.currentCardIndex = 0;
+    showToast('trash-2', 'Flashcard deck cleared.', 'info');
+    syncFlashcardsUI();
+    updateDashboardStats();
+    saveStateToStorage();
+  }
+});
+
+
+// --- INITIALIZATION ON DOCUMENT LOAD ---
+window.addEventListener('DOMContentLoaded', () => {
+  // Sync state
+  loadStateFromStorage();
+  updateDashboardStats();
+  
+  // Render default dashboard views
+  switchTab('dashboard');
+  
+  // Load preset warning triggers
+  syncQuizSourceUI();
+  syncFlashcardsUI();
+  
+  // Clean initialization log if first time
+  if (state.activityLog.length === 0) {
+    logActivity('welcome', 'Registered your first day of EduGenie AI study!');
+  }
+  
+  // Trigger Lucide icons replacing
+  lucide.createIcons();
 });
